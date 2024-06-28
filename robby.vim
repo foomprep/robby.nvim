@@ -1,10 +1,10 @@
 " TODO this should work but does not, function below is quick hack
-"function! CheckVisualMode()
+"function! IsVisualMode()
 "    " Check if in visual mode
 "    let current_mode = mode()
 "    return current_mode =~ '\v^v' || current_mode == "\<C-V>"
 "endfunction
-function! CheckVisualMode(line1, line2)
+function! IsVisualMode(line1, line2)
     return !(a:line1 == a:line2)
 endfunction
 
@@ -94,7 +94,6 @@ function! ExtractCodeBlock(text)
     endif
 endfunction
 
-
 " Yank all lines of current file
 function! GetFileContents()
     silent execute 'normal! ggVGy'
@@ -164,7 +163,7 @@ endfunction
 function! Robby(line1, line2, prompt)
     " TODO create a match statement for different platforms
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
-        if CheckVisualMode(a:line1, a:line2)
+        if IsVisualMode(a:line1, a:line2)
             " Yank highlighted text, ask for updates from model
             " and replace highlighted text with update
             " Save some money babee!
