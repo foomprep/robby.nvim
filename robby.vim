@@ -112,42 +112,42 @@ function! GetCompletion(user_message)
 endfunction
 
 function! GetOpenAICompletion(user_message)
-  " Check if the curl command is available
-  if !executable('curl')
-    echoerr "Error: curl is not available. Please install curl to use this function."
-    return
-  endif
+    " Check if the curl command is available
+    if !executable('curl')
+        echoerr "Error: curl is not available. Please install curl to use this function."
+        return
+    endif
 
-  " Prepare the API endpoint and request data
-  let l:url = 'https://api.openai.com/v1/chat/completions'
-  let l:data = json_encode({
-        \ 'prompt': a:user_message,
-        \ 'max_tokens': 150,
-        \ 'n': 1,
-        \ 'stop': '',
-        \ 'temperature': 0.7,
-        \ })
+    " Prepare the API endpoint and request data
+    let l:url = 'https://api.openai.com/v1/chat/completions'
+    let l:data = json_encode({
+                \ 'prompt': a:user_message,
+                \ 'max_tokens': 150,
+                \ 'n': 1,
+                \ 'stop': '',
+                \ 'temperature': 0.7,
+            \ })
 
-  " Construct the curl command
-  let l:cmd = 'curl -s -X POST ' . l:url .
-        \ ' -H "Content-Type: application/json"' .
-        \ ' -H "Authorization: Bearer ' . $OPENAI_API_KEY . '"' .
-        \ " -d '" . escape(l:data, "'") . "'"
+    " Construct the curl command
+    let l:cmd = 'curl -s -X POST ' . l:url .
+                \ ' -H "Content-Type: application/json"' .
+                \ ' -H "Authorization: Bearer ' . $OPENAI_API_KEY . '"' .
+                \ " -d '" . escape(l:data, "'") . "'"
 
-  " Execute the curl command and capture the output
-  let l:result = system(l:cmd)
+    " Execute the curl command and capture the output
+    let l:result = system(l:cmd)
 
-  " Parse the JSON response
-  let l:response = json_decode(l:result)
+    " Parse the JSON response
+    let l:response = json_decode(l:result)
 
-  " Check for errors in the API response
-  if has_key(l:response, 'error')
-    echoerr "Error from OpenAI API: " . l:response.error.message
-    return
-  endif
+    " Check for errors in the API response
+    if has_key(l:response, 'error')
+        echoerr "Error from OpenAI API: " . l:response.error.message
+        return
+    endif
 
-  " Extract and return the generated text
-  return l:response.choices[0].text
+    " Extract and return the generated text
+    return l:response.choices[0].text
 endfunction
 
 function! GetAnthropicCompletion(user_message)
