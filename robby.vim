@@ -5,7 +5,7 @@
 "    return current_mode =~ '\v^v' || current_mode == "\<C-V>"
 "endfunction
 function! CheckVisualMode(line1, line2)
-    return !a:line1 == a:line2
+    return !(a:line1 == a:line2)
 endfunction
 
 function! ExtractCodeBlock(text)
