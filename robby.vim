@@ -8,6 +8,56 @@ function! CheckVisualMode(line1, line2)
     return !(a:line1 == a:line2)
 endfunction
 
+function! YankRangeOfLines(start_line, end_line)
+    " Save the current register setting and cursor position
+    let save_reg = getreg('"')
+    let save_cursor = getpos('.')
+
+    " Move to the start line of the range
+    execute 'normal! ' . a:start_line . 'G'
+
+    " Enter visual mode and select the range of lines
+    execute "normal! V" . (a:end_line - a:start_line) . "j"
+
+    " Yank the selected lines into register 'a'
+    execute "normal! \"ay"
+
+    " Store the yanked text into a variable
+    let yanked_text = @a
+
+    " Restore the original register setting and cursor position
+    call setreg('"', save_reg)
+    call setpos('.', save_cursor)
+
+    " Return the yanked text
+    return yanked_text
+endfunction
+
+function! ReplaceLinesInRange(start_line, end_line, new_text)
+    " Save the current register setting and cursor position
+    let save_reg = getreg('"')
+    let save_cursor = getpos('.')
+
+    " Move to the start line of the range
+    execute 'normal! ' . a:start_line . 'G'
+
+    " Enter visual mode and select the range of lines
+    execute "normal! V" . (a:end_line - a:start_line) . "j"
+
+    " Yank the selected lines into register 'a'
+    normal! "ay
+
+    " Delete the selected lines
+    execute a:start_line . "," . a:end_line . "d"
+
+    " Insert the new text
+    call append(a:start_line - 1, split(a:new_text, "\n"))
+
+    " Restore the original register setting and cursor position
+    call setreg('"', save_reg)
+    call setpos('.', save_cursor)
+endfunction
+
 function! ExtractCodeBlock(text)
     " Split the input text into lines
     let lines = split(a:text, "\n")
@@ -94,9 +144,9 @@ function! GetCompletion(user_message)
     endif
 endfunction
 
-function! GetCodeChanges(prompt)
+function! GetCodeChanges(prompt, old_code)
     let user_message =  "code section:\n" .
-        \ GetFileContents() . "\n\n" .
+        \ a:old_code . "\n\n" .
         \ "Changes to be made:\n" .
         \ a:prompt
     return GetCompletion(user_message)
@@ -104,14 +154,24 @@ endfunction
 
 " Entry point ;)
 function! Robby(line1, line2, prompt)
+    " TODO create a match statement for different platforms
     if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
         if CheckVisualMode(a:line1, a:line2)
-            " TODO only use the highlighted lines and then run
-            " update on that text alone and reinsert updated code
+            " Yank highlighted text, ask for updates from model
+            " and replace highlighted text with update
+            " Save some money babee!
+            let yanked_lines = YankRangeOfLines(a:line1, a:line2)
+            let new_text = GetCodeChanges(a:prompt, yanked_lines)
+            let parsed_text = ExtractCodeBlock(new_text)
+            if strlen(parsed_text) <= 0
+                echo new_text
+            else
+                call ReplaceLinesInRange(a:line1, a:line2, parsed_text)
+            endif
         else
             " This will use all lines of current file and replace
             " entire file by updated code returned by model
-            let new_text = GetCodeChanges(a:prompt)
+            let new_text = GetCodeChanges(a:prompt, GetFileContents())
             let parsed_text = ExtractCodeBlock(new_text)
             if strlen(parsed_text) <= 0
                 echo new_text 
