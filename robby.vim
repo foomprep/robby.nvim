@@ -32,6 +32,12 @@ function! GetCompletion(prompt)
     endif
 endfunction
 
+function! GetFileContents()
+    silent execute 'normal! ggVGy'
+    let file_content = @"
+    return file_content
+endfunction
+
 function! Robby(prompt)
     if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
         echo GetCompletion(a:prompt)
