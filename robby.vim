@@ -106,10 +106,10 @@ endfunction
 function! GetCompletion(user_message)
 	if match($ROBBY_MODEL, "claude") >= 0
 		return GetAnthropicCompletion(a:user_message)
+	else
+		echoerr "Model not supported."
 	endif
 endfunction
-
-
 
 function! GetAnthropicCompletion(user_message)
     let json_data = json_encode({
