@@ -1,11 +1,5 @@
-" TODO this should work but does not, function below is quick hack
-"function! IsVisualMode()
-"    " Check if in visual mode
-"    let current_mode = mode()
-"    return current_mode =~ '\v^v' || current_mode == "\<C-V>"
-"endfunction
-function! IsVisualMode(line1, line2)
-    return !(a:line1 == a:line2)
+function! IsVisualMode(cmd_string)
+    return match(a:cmd_string, "'<,'>")
 endfunction
 
 function! YankRangeOfLines(start_line, end_line)
@@ -161,9 +155,9 @@ endfunction
 
 " Entry point ;)
 function! Robby(line1, line2, prompt)
-    " TODO create a match statement for different platforms
+	let cmdline_text = @:
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
-        if IsVisualMode(a:line1, a:line2)
+        if IsVisualMode(cmdline_text)
             " Yank highlighted text, ask for updates from model
             " and replace highlighted text with update
             " Save some money babee!
