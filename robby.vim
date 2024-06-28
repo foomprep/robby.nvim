@@ -19,18 +19,17 @@ function! GetCompletion(prompt)
     let result = system(cmd)
 
     " Check for curl errors
-    "if v:shell_error
-    "    ec    return
-    "endif
+    if v:shell_error
+        ec    return
+    endif
 
     let response = json_decode(result)
-    return response
-    "if has_key(response, 'content') && len(response.content) > 0
-    "    return response.content[0].text
-    "else
-    "    echoerr "Unexpected response format"
-    "    return
-    "endif
+    if has_key(response, 'content') && len(response.content) > 0
+        return response.content[0].text
+    else
+        echoerr "Unexpected response format"
+        return
+    endif
 endfunction
 
 function! Robby(prompt)
