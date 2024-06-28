@@ -5,6 +5,14 @@ function! GetFileContents()
     return file_content
 endfunction
 
+function! EraseAndWriteToFile(new_text)
+    let save_cursor = getcurpos('.')
+    silent execute 'normal! ggVGd'
+    call append(0, split(a:new_text, "\n"))
+    silent write
+    call setpos('.', save_cursor)
+endfunction
+
 function! GetCompletion(user_message)
     let json_data = json_encode({
         \ 'model': 'claude-3-5-sonnet-20240620',
@@ -44,13 +52,13 @@ function! GetCodeChanges(prompt)
         \ GetFileContents() . "\n\n" .
         \ "Changes to be made:\n" .
         \ a:prompt
-    let updated_code = GetCompletion(user_message)
-    echo updated_code
+    return GetCompletion(user_message)
 endfunction
 
 function! Robby(prompt)
     if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
-        echo GetCodeChanges(a:prompt)
+        let new_text = GetCodeChanges(a:prompt)
+        call EraseAndWriteToFile(new_text)
     endif
 endfunction
 
