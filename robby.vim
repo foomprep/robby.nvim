@@ -111,7 +111,7 @@ endfunction
 
 function! GetCompletion(user_message)
 	if match($ROBBY_MODEL, "claude") >= 0
-		return GetAnthropicCompletion(user_message)
+		return GetAnthropicCompletion(a:user_message)
 	endif
 endfunction
 
