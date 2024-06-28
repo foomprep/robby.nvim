@@ -111,47 +111,44 @@ function! GetCompletion(user_message)
 	endif
 endfunction
 
-"function! GetOpenAICompletion(user_message)
-"  " Check if the curl command is available
-"  if !executable('curl')
-"    echoerr "Error: curl is not available. Please install curl to use this function."
-"    return
-"  endif
-"
-"  " Set your OpenAI API key here
-"  let l:api_key = 'YOUR_API_KEY_HERE'
-"
-"  " Prepare the API endpoint and request data
-"  let l:url = 'https://api.openai.com/v1/engines/text-davinci-002/completions'
-"  let l:data = json_encode({
-"        \ 'prompt': a:user_message,
-"        \ 'max_tokens': 150,
-"        \ 'n': 1,
-"        \ 'stop': '',
-"        \ 'temperature': 0.7,
-"        \ })
-"
-"  " Construct the curl command
-"  let l:cmd = 'curl -s -X POST ' . l:url .
-"        \ ' -H "Content-Type: application/json"' .
-"        \ ' -H "Authorization: Bearer ' . l:api_key . '"' .
-"        \ " -d '" . escape(l:data, "'") . "'"
-"
-"  " Execute the curl command and capture the output
-"  let l:result = system(l:cmd)
-"
-"  " Parse the JSON response
-"  let l:response = json_decode(l:result)
-"
-"  " Check for errors in the API response
-"  if has_key(l:response, 'error')
-"    echoerr "Error from OpenAI API: " . l:response.error.message
-"    return
-"  endif
-"
-"  " Extract and return the generated text
-"  return l:response.choices[0].text
-"endfunction
+function! GetOpenAICompletion(user_message)
+  " Check if the curl command is available
+  if !executable('curl')
+    echoerr "Error: curl is not available. Please install curl to use this function."
+    return
+  endif
+
+  " Prepare the API endpoint and request data
+  let l:url = 'https://api.openai.com/v1/chat/completions'
+  let l:data = json_encode({
+        \ 'prompt': a:user_message,
+        \ 'max_tokens': 150,
+        \ 'n': 1,
+        \ 'stop': '',
+        \ 'temperature': 0.7,
+        \ })
+
+  " Construct the curl command
+  let l:cmd = 'curl -s -X POST ' . l:url .
+        \ ' -H "Content-Type: application/json"' .
+        \ ' -H "Authorization: Bearer ' . $OPENAI_API_KEY . '"' .
+        \ " -d '" . escape(l:data, "'") . "'"
+
+  " Execute the curl command and capture the output
+  let l:result = system(l:cmd)
+
+  " Parse the JSON response
+  let l:response = json_decode(l:result)
+
+  " Check for errors in the API response
+  if has_key(l:response, 'error')
+    echoerr "Error from OpenAI API: " . l:response.error.message
+    return
+  endif
+
+  " Extract and return the generated text
+  return l:response.choices[0].text
+endfunction
 
 function! GetAnthropicCompletion(user_message)
     let json_data = json_encode({
@@ -199,7 +196,7 @@ endfunction
 function! Robby(line1, line2, prompt)
 	let cmdline_text = @:
 	if match(a:prompt, "-q") >= 0
-		echo GetCompletion(a:prompt)
+		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'))
 		return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
