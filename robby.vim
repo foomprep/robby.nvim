@@ -1,3 +1,40 @@
+function! ExtractCodeBlock(text)
+    " Split the input text into lines
+    let lines = split(a:text, "\n")
+
+    " Initialize variables
+    let start_line = 0
+    let end_line = len(lines) - 1
+    let found_start = 0
+
+    " Loop through lines to find the start and end of the code block
+    for i in range(len(lines))
+        let line = lines[i]
+        if found_start == 0
+            " Check for the start of the code block
+            if line =~ '```'
+                let found_start = 1
+                let start_line = i + 1
+            endif
+        else
+            " Check for the end of the code block
+            if line =~ '```'
+                let end_line = i - 1
+                break
+            endif
+        endif
+    endfor
+
+    " Return the extracted code block as a string
+    if found_start == 1 && start_line <= end_line
+        let code_block = join(lines[start_line:end_line], "\n")
+        return code_block
+    else
+        return ""
+    endif
+endfunction
+
+
 " Yank all lines of current file
 function! GetFileContents()
     silent execute 'normal! ggVGy'
@@ -17,7 +54,7 @@ function! GetCompletion(user_message)
     let json_data = json_encode({
         \ 'model': 'claude-3-5-sonnet-20240620',
         \ 'max_tokens': 1024,
-        \ 'system': 'You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context.  ONLY return the updated code. and nothing else.',
+        \ 'system': 'You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context',
         \ 'messages': [
         \   {'role': 'user', 'content': a:user_message}
         \ ]
@@ -58,7 +95,12 @@ endfunction
 function! Robby(prompt)
     if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
         let new_text = GetCodeChanges(a:prompt)
-        call EraseAndWriteToFile(new_text)
+        let parsed_text = ExtractCodeBlock(new_text)
+        if strlen(parsed_text) <= 0
+            echo new_text 
+        else
+            call EraseAndWriteToFile(parsed_text)
+        endif
     endif
 endfunction
 
