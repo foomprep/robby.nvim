@@ -111,6 +111,14 @@ function! EraseAndWriteToFile(new_text)
 endfunction
 
 function! GetCompletion(user_message)
+	if match($ROBBY_MODEL, "claude") >= 0
+		return GetAnthropicCompletion(user_message)
+	endif
+endfunction
+
+
+
+function! GetAnthropicCompletion(user_message)
     let json_data = json_encode({
         \ 'model': 'claude-3-5-sonnet-20240620',
         \ 'max_tokens': 1024,
@@ -155,7 +163,7 @@ endfunction
 " Entry point ;)
 function! Robby(line1, line2, prompt)
     " TODO create a match statement for different platforms
-    if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
+    if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if CheckVisualMode(a:line1, a:line2)
             " Yank highlighted text, ask for updates from model
             " and replace highlighted text with update
@@ -179,6 +187,8 @@ function! Robby(line1, line2, prompt)
                 call EraseAndWriteToFile(parsed_text) 
             endif
         endif
+	else
+		echoerr "Env var ROBBY_MODEL must be set"
     endif
 endfunction
 
