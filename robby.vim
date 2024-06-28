@@ -1,3 +1,13 @@
+" TODO this should work but does not, function below is quick hack
+"function! CheckVisualMode()
+"    " Check if in visual mode
+"    let current_mode = mode()
+"    return current_mode =~ '\v^v' || current_mode == "\<C-V>"
+"endfunction
+function! CheckVisualMode(line1, line2)
+    return !a:line1 == a:line2
+endfunction
+
 function! ExtractCodeBlock(text)
     " Split the input text into lines
     let lines = split(a:text, "\n")
@@ -92,16 +102,24 @@ function! GetCodeChanges(prompt)
     return GetCompletion(user_message)
 endfunction
 
-function! Robby(prompt)
+" Entry point ;)
+function! Robby(line1, line2, prompt)
     if exists('$ANTHROPIC_API_KEY') && !empty($ANTHROPIC_API_KEY)
-        let new_text = GetCodeChanges(a:prompt)
-        let parsed_text = ExtractCodeBlock(new_text)
-        if strlen(parsed_text) <= 0
-            echo new_text 
+        if CheckVisualMode(a:line1, a:line2)
+            " TODO only use the highlighted lines and then run
+            " update on that text alone and reinsert updated code
         else
-            call EraseAndWriteToFile(parsed_text)
+            " This will use all lines of current file and replace
+            " entire file by updated code returned by model
+            let new_text = GetCodeChanges(a:prompt)
+            let parsed_text = ExtractCodeBlock(new_text)
+            if strlen(parsed_text) <= 0
+                echo new_text 
+            else
+                call EraseAndWriteToFile(parsed_text) 
+            endif
         endif
     endif
 endfunction
 
-command! -nargs=1 Robby call Robby(<q-args>)
+command! -range -nargs=1 Robby call Robby(<line1>, <line2>, <q-args>)
