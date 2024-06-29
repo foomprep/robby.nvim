@@ -251,6 +251,7 @@ function! Main(r, line1, line2, prompt)
 		return
 	endif
 	if match(a:prompt, "-q") >= 0
+		" Check visual mode
 		if a:r > 0
             let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
 		else
@@ -268,7 +269,8 @@ function! Main(r, line1, line2, prompt)
 		return
 	endif
 	if match(a:prompt, "-c") >= 0
-		let commit_msg = substitute(a:prompt, "-c", '', 'g')
+		let l:commit_msg = substitute(a:prompt, "-c", '', 'g')
+		l:commit_msg = substitute(l:commit_msg, '"', '', 'g')
 		let cmd = 'Git commit -m "' . commit_msg . '"'
 		Git add .
 		execute cmd
