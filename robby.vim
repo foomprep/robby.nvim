@@ -1,5 +1,7 @@
-let g:system_message = "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code."
-
+let g:system_message = { 
+    \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.", 
+    \ "question": "" 
+\ }
 
 function! IsVisualMode(cmd_string)
     return match(a:cmd_string, "'<,'>")
@@ -106,21 +108,18 @@ function! EraseAndWriteToFile(new_text)
     call setpos('.', save_cursor)
 endfunction
 
-function! GetCompletion(user_message, system_message)
-	if system_message == ""
-		let a:system_message = g:system_message
-	endif
+function! GetCompletion(user_message, query_type)
+	" TODO add support for ollama and other models
 	if match($ROBBY_MODEL, "claude") >= 0
-		return GetAnthropicCompletion(a:user_message, a:system_message)
+		return GetAnthropicCompletion(a:user_message, g:system_message[a:query_type])
 	elseif match($ROBBY_MODEL, "gpt") >= 0
-		return GetOpenAICompletion(a:user_message, a:system_message)
+		return GetOpenAICompletion(a:user_message, g:system_message[a:query_type])
 	else
 		echoerr "Model not supported."
 	endif
 endfunction
 
 function! GetOpenAICompletion(user_message, system_message)
-	echo a:system_message
     " Check if the curl command is available
     if !executable('curl')
         echoerr "Error: curl is not available. Please install curl to use this function."
@@ -207,14 +206,17 @@ function! GetCodeChanges(prompt, old_code)
         \ a:old_code . "\n\n" .
         \ "Changes to be made:\n" .
         \ a:prompt
-    return GetCompletion(user_message, "")
+    return GetCompletion(user_message, "code")
 endfunction
 
 " Entry point ;)
+" TODO create -rewind flag that restores git changes
+" TODO create -commit flag that commits git changes
 function! Robby(line1, line2, prompt)
 	let cmdline_text = @:
+	" Asking a question will cancel all other options
 	if match(a:prompt, "-q") >= 0
-		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'))
+		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
