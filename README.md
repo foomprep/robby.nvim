@@ -85,8 +85,8 @@ you can go into visual mode wherever you want that code to be written, but not h
 detect visual mode but not add any context to the prompt.  
 
 ## Contributing
-AI programming is an interesting new space and contributions are welcome and encouraged.  I'd like to add all kinds of
-different features and the project is SUPER alpha.  I'd really just like   You can find TODOs by `grep`ing the root directory.
+AI programming is an interesting new space and contributions are welcome and encouraged.  I'm interested in what seeing people can
+do with very simple tools that leverage language models. You can find TODOs by `grep`ing the root directory
 ```
 grep -rnw . -e TODO
 ```
