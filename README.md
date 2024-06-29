@@ -51,7 +51,7 @@ As an example, we'll build a simple python script.  Begin by creating the projec
 cd
 mkdir my-sample-app && cd my-sample-app
 git init
-vim fact.py
+vim substring.py
 ```
 Let's generate a function
 ```
