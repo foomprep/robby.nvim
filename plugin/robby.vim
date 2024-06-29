@@ -261,8 +261,10 @@ function! Main(r, line1, line2, prompt)
 	" TODO this does not work because of the .swp file that is open 
 	" while vim editor is open	
 	if match(a:prompt, "-c") >= 0
-		call system("git add .")
-		call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
+		"call system("git add .")
+		"call system("git commit -m \" . substitute(a:prompt, \"-c\", '', 'g'))
+		Git add .
+		Git commit -m "hello"
 		echo "Changes commited space cowboy"
 		return
 	endif
