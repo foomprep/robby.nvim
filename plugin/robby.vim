@@ -8,7 +8,7 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "prompt. If the editor is in visual mode when command is run then " .
 	\ "the highlighted text is used as context in the prompt, otherwise " .
 	\ "the entire file is used as context.\n\n" .
-	\ "options:\n"
+	\ "options:\n" .
 	\ "		-h 			Help message\n" .
 	\ "		-q			Ask question, prints to buffer, does not change code\n" .
 	\ "		--rewind	Rewind all written changes not commited\n"
@@ -240,7 +240,7 @@ function! Main(r, line1, line2, prompt)
 	"	return
 	"endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
-        if a:r > 0: 
+        if a:r > 0 
 			" In visual mode
             " Yank highlighted text, ask for updates from model
             " and replace highlighted text with update
