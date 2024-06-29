@@ -1,4 +1,6 @@
 " TODO handle unconnected error in curl request
+" TODO each time code is edited by Robby, automatically commit and use the
+" prompt as the commit message, then rewind to last commit using --rewind
 
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
