@@ -3,15 +3,6 @@ let g:system_message = {
     \ "question": "" 
 \ }
 
-function! SaveToRobbyHistory(cmd_string)
-	echo a:cmd_string
-	call writefile([a:cmd_string], '.robby_history', 'a')
-endfunction
-
-function! IsVisualMode(cmd_string)
-    return match(a:cmd_string, "'<,'>")
-endfunction
-
 function! YankRangeOfLines(start_line, end_line)
     " Save the current register setting and cursor position
     let save_reg = getreg('"')
