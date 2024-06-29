@@ -3,6 +3,16 @@ let g:system_message = {
     \ "question": "" 
 \ }
 
+let g:help_message = "Robby [options] [prompt]" .
+	\ "If no options are given, Robby will generate code according to the " .
+	\ "prompt. If the editor is in visual mode when command is run then " .
+	\ "the highlighted text is used as context in the prompt, otherwise " .
+	\ "the entire file is used as context.\n" .
+	\ "options:\n"
+	\ "		-h 			Help message\n" .
+	\ "		-q			Ask question, prints to buffer, does not change code\n" .
+	\ "		--rewind	Rewind all written changes not commited\n"
+
 function! YankRangeOfLines(start_line, end_line)
     " Save the current register setting and cursor position
     let save_reg = getreg('"')
@@ -208,6 +218,9 @@ endfunction
 " Entry point ;)
 function! Main(r, line1, line2, prompt)
 	" Asking a question will cancel all other options
+	if match(a:prompt, "-h" | "--help") >= 0
+		echo g:help_message
+		return
 	if match(a:prompt, "-q") >= 0
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
@@ -219,12 +232,12 @@ function! Main(r, line1, line2, prompt)
 		echo "Changes erased space cowboy"
 		return
 	endif
-	if match(a:prompt, "-c") >= 0
-		call system("git add .")
-		call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
-		echo "Changes commited space cowboy"
-		return
-	endif
+	"if match(a:prompt, "-c") >= 0
+	"	call system("git add .")
+	"	call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
+	"	echo "Changes commited space cowboy"
+	"	return
+	"endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if a:r > 0: 
 			" In visual mode
