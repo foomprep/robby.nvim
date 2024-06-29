@@ -13,7 +13,7 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "options:\n" .
 	\ "		-h 		Help message\n" .
 	\ "		-q		Ask question, prints to buffer, does not change code\n" .
-	\ "		--rewind	Rewind all written changes not commited\n"
+	\ "		--rewind	Rewind all written unstaged changes\n"
 
 function! YankRangeOfLines(start_line, end_line)
     " Save the current register setting and cursor position
