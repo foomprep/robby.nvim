@@ -34,7 +34,7 @@ tells the plugin to simply query the model for an answer to a question instead o
 
 ## WARNING!!!  
 This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
-Make sure that you are using it to edit/generate code for a project that has version control like `git`.  
+Make sure that you are using it to edit/generate code for a project that has `git`. 
 
 The basic workflow is that you generate a new function or make an edit and then either `rewind` the change or commit and 
 move incrementally in this way.  `Robby` has a `rewind` command that is just syntactic sugar for `git restore .`.
