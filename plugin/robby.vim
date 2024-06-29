@@ -254,6 +254,7 @@ function! Main(r, line1, line2, prompt)
             let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
 		else
 			let l:yanked_lines = GetFileContents()
+		endif
 		let l:user_message = a:prompt . "\n\nContext:\n" . l:yanked_lines
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
