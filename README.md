@@ -2,7 +2,8 @@
 
 ![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
 
-Robby is a vim plugin that gives you the power to generate and edit code using language models within your vim (or nvim) editor.
+Robby is a vim plugin that gives you the power to generate and edit code using language models within your vim (or nvim) editor.  
+The plugin is in alpha and will most likely change frequently (but maybe not?).
 
 ## Installation
 This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  If you don't already use
@@ -25,8 +26,8 @@ The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, 
 export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```
 The plugin will only work with text models (or multimodal models that use text).  Any models compatible with 
-Anthropic's messages or OpenAI's chat completions endpoints.  The plugin assumes you have the environemnt variables set
-for the platform tokens, so either one of these:
+Anthropic's messages or OpenAI's chat completions endpoints.  Currently working on integrating with ollama/llama.cpp backend so you
+can use open source models.  The plugin assumes you have the environemnt variables set for the platform tokens, so either one of these:
 ```
 export OPENAI_API_KEY=<your key>
 export ANTHROPIC_API_KEY=<your anthropic_key
