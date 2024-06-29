@@ -60,11 +60,12 @@ Let's generate a function
 ```
 :Robby Generate a function that counts the number of a substring present in a given string
 ```
-A function should appear in the editor.  We think this is good, so we commit
+A function should appear in the editor.  Then commit changes
 ```
 :Robby -c "Count function"
 ```
-Now, let's change the function a little bit.  Reopen the file and run
+This command is just wrapper for the lovely plugin `vim-fugitive` by `tpope`.  It stages all changes and then commits them with the given 
+message. If you prefer to just `Git` that will work fine. Now, let's change the function a little bit.  Reopen the file and run
 ```
 :Robby add the end argument to the find method as the length of the given string
 ```
