@@ -267,7 +267,7 @@ function! Main(r, line1, line2, prompt)
 	endif
 	if match(a:prompt, "-c") >= 0
 		let commit_msg = substitute(a:prompt, "-c", '', 'g')
-		let cmd = 'Git commit -m"' . commit_msg . '"'
+		let cmd = 'Git commit -m "' . escape(commit_msg, '"') . '"'
 		Git add .
 		execute cmd
 		echo "Changes commited space cowboy"
