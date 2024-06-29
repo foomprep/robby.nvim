@@ -5,8 +5,9 @@
 Robby is a vim plugin that gives you the power to generate and edit code using language models within your vim (or nvim) editor.
 
 ## Installation
-This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  Please follow
-the instructions their to install before proceeding.
+This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  If you don't already use
+`vim-fugitive` please follow the instructions their to install before proceeding.  You should be using `vim-fugitive`.
+I repeat, you should be using `vim-fugitive`.
 
 To install you can use your favorite package manager like [vim-plug](https://github.com/junegunn/vim-plug)
 or use `vim`'s built-in package support:
