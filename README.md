@@ -29,7 +29,8 @@ Open `vim` and run
 ```
 :Robby -q hello
 ```
-to test that your environment is setup correctly and you have credits with your platform of choice.
+to test that your environment is setup correctly and you have credits with your platform of choice.  The `-q` 
+tells the plugin to simply query the model for an answer to a question instead of editing the file.
 
 ## WARNING!!!  
 This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
@@ -43,6 +44,13 @@ up trying something, doesn't work, you rewind with
 :Robby --rewind
 ```
 and then try again.  Rinse and repeat.  This project assumes you are working within a git repository.  Disobey at your peril!
+
+## Quickstart
+As an example, we'll build a simple python script.  Begin by creating the project and initializing git
+```
+mkdir my-sample-app && cd my-sample-app
+git init
+```
 
 ## Contributing
 AI programming is an interesting new space and contributions are welcome and encouraged.  I'd like to add all kinds of
