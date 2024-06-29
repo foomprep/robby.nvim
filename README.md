@@ -20,7 +20,7 @@ export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```
 The plugin will only work with text models (or multimodal models that use text).  Any models compatible with 
 Anthropic's messages or OpenAI's chat completions endpoints.  The plugin assumes you have the environemnt variables set
-for the correct model as well, so either one of these:
+for the platform tokens, so either one of these:
 ```
 export OPENAI_API_KEY=<your key>
 export ANTHROPIC_API_KEY=<your anthropic_key
