@@ -299,24 +299,24 @@ function! Main(r, line1, line2, prompt)
             " and replace highlighted text with update
             " You can enter visual mode without highlighting text
             " to generate without context
-            let yanked_lines = YankRangeOfLines(a:line1, a:line2)
-            let new_text = GetCodeChanges(l:args.prompt, yanked_lines)
-            let parsed_text = ExtractCodeBlock(new_text)
-            if strlen(parsed_text) <= 0
-                echo new_text
+            let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
+            let l:new_text = GetCodeChanges(l:args.prompt, l:yanked_lines)
+            let l:parsed_text = ExtractCodeBlock(l:new_text)
+            if strlen(l:parsed_text) <= 0
+                echo l:new_text
             else
-                call ReplaceLinesInRange(a:line1, a:line2, parsed_text)
+                call ReplaceLinesInRange(a:line1, a:line2, l:parsed_text)
             endif
         else 
             " In normal mode
             " This will use all lines of current file and replace
             " entire file by updated code returned by model
-            let new_text = GetCodeChanges(l:args.prompt, GetFileContents())
-            let parsed_text = ExtractCodeBlock(new_text)
-            if strlen(parsed_text) <= 0
-                echo new_text 
+            let l:new_text = GetCodeChanges(l:args.prompt, GetFileContents())
+            let l:parsed_text = ExtractCodeBlock(l:new_text)
+            if strlen(l:parsed_text) <= 0
+                echo l:new_text 
             else
-                call EraseAndWriteToFile(parsed_text) 
+                call EraseAndWriteToFile(l:parsed_text) 
             endif
         endif
     else
