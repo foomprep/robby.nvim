@@ -7,8 +7,7 @@ The plugin is in alpha and will most likely change frequently (but maybe not?).
 
 ## Installation
 This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  If you don't already use
-`vim-fugitive` please follow the instructions their to install before proceeding.  You should already be using `vim-fugitive`.
-I repeat, you should be using `vim-fugitive`.
+`vim-fugitive` please follow the instructions their to install before proceeding.  
 
 The plugin also assumes you have `curl` installed on your system.
 
@@ -25,8 +24,7 @@ The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, 
 ```
 export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```
-The plugin will only work with text models (or multimodal models that use text).  Any models compatible with 
-Anthropic's messages or OpenAI's chat completions endpoints.  Currently working on integrating with ollama/llama.cpp backend so you
+The plugin will only work with text models (or multimodal models that use text).  Currently working on integrating with ollama/llama.cpp backend so you
 can use open source models.  The plugin assumes you have the environemnt variables set for the platform tokens, so either one of these:
 ```
 export OPENAI_API_KEY=<your key>
@@ -63,7 +61,7 @@ Let's generate a function
 ```
 :Robby Generate a function that counts the number of a substring present in a given string
 ```
-A function should appear in the editor.  Then commit changes
+A function should appear in the editor.  Then commit changes (make sure that your `.gitignore` has entry for swap files `*.swp`)
 ```
 :Robby -c "Count function"
 ```
