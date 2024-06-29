@@ -5,7 +5,7 @@
 Robby is a vim plugin that gives you the power to generate and edit code within your vim (or nvim) editor.
 
 ## Installation
-To install you can use your favorte package manager like [vim-plug](https://github.com/junegunn/vim-plug)
+To install you can use your favorite package manager like [vim-plug](https://github.com/junegunn/vim-plug)
 or use `vim`'s built-in package support:
 ```
 mkdir -p ~/.vim/pack/robby/start
