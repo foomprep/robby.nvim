@@ -34,6 +34,7 @@ to test that your environment is setup correctly and you have credits with your 
 ## WARNING!!!  
 This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
 Make sure that you are using it to edit/generate code for a project that has version control like `git`.  
+
 The basic workflow is that you generate a new function or make an edit and then either `rewind` the change or commit and 
 move incrementally in this way.  `Robby` has a `rewind` command that is just syntactic sugar for `git restore .`.
 This is because in many cases the code generation will not work or maybe you didn't prompt correctly, so sometimes you end
