@@ -50,7 +50,38 @@ As an example, we'll build a simple python script.  Begin by creating the projec
 ```
 mkdir my-sample-app && cd my-sample-app
 git init
+vim fact.py
 ```
+Let's generate a function
+```
+:Robby Generate a function that counts the number of a substring present in a given string
+```
+A function should appear in the editor.  Exit and commit this using git
+```
+git add . && git commit -m "Test"
+```
+Now, let's change the function a little bit.  Reopen the file and run
+```
+:Robby add the end argument to the find method as the length of the given string
+```
+The find method should now change.  Let's say we didn't like this change.  Then we can simply run
+```
+:Robby --rewind
+```
+and all unstaged changes will be removed.  Now in each of these changes the entire file is being included in the prompt
+and the entire file is being updated by the completion.  Instead, if we only want to update some part of the code that
+does not need the rest of file for context, we can use visual mode to highlight the text we want to include in the context.
+What is returned by the completion will replace only highlighted text in place.  Go into visual mode and highlight the 
+`while` loop in the code.  Then run the editor command (the braces before `Robby` will be added automatically if you are in
+visual mode
+```
+:'<,'>Robby turn this while loop into a for loop
+```
+When it completes you should see a `for` loop now.  
+
+And that's it!  The last thing to note is that if you want to just insert any generated code without ANY context then
+you can go into visual mode wherever you want that code to be written, but not highlight anything.  The plugin will
+detect visual mode but not add any context to the prompt.  
 
 ## Contributing
 AI programming is an interesting new space and contributions are welcome and encouraged.  I'd like to add all kinds of
