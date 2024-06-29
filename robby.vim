@@ -171,7 +171,7 @@ function! GetAnthropicCompletion(user_message, system_message)
     let json_data = json_encode({
         \ 'model': 'claude-3-5-sonnet-20240620',
         \ 'max_tokens': 1024,
-		\ 'system': g:system_message,
+		\ 'system': a:system_message,
         \ 'messages': [
         \   {'role': 'user', 'content': a:user_message}
         \ ]
@@ -212,6 +212,7 @@ endfunction
 " Entry point ;)
 " TODO create -rewind flag that restores git changes
 " TODO create -commit flag that commits git changes
+" TODO store Robby commands in local history and create -history flag to view and access them
 function! Main(line1, line2, prompt)
 	let cmdline_text = @:
 	" Asking a question will cancel all other options
@@ -219,7 +220,6 @@ function! Main(line1, line2, prompt)
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
 	endif
-	
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if IsVisualMode(cmdline_text)
             " Yank highlighted text, ask for updates from model
