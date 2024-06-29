@@ -56,9 +56,9 @@ Let's generate a function
 ```
 :Robby Generate a function that counts the number of a substring present in a given string
 ```
-A function should appear in the editor.  Exit and commit this using git
+A function should appear in the editor.  We think this is good, so we commit
 ```
-git add . && git commit -m "Test"
+:Robby -c "Count function"
 ```
 Now, let's change the function a little bit.  Reopen the file and run
 ```
