@@ -220,6 +220,11 @@ function! Main(line1, line2, prompt)
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
 	endif
+	if match(a:prompt, "--rewind") >= 0
+		call system("git restore .")
+		echo "Changes erased space cowboy"
+		return
+	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if IsVisualMode(cmdline_text)
             " Yank highlighted text, ask for updates from model
