@@ -6,7 +6,7 @@ Robby is a vim plugin that gives you the power to generate and edit code using l
 
 ## Installation
 This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  If you don't already use
-`vim-fugitive` please follow the instructions their to install before proceeding.  You should be using `vim-fugitive`.
+`vim-fugitive` please follow the instructions their to install before proceeding.  You should already be using `vim-fugitive`.
 I repeat, you should be using `vim-fugitive`.
 
 The plugin also assumes you have `curl` installed on your system.
