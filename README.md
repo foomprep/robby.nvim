@@ -61,7 +61,7 @@ Let's generate a function
 ```
 :Robby Generate a function that counts the number of a substring present in a given string
 ```
-A function should appear in the editor.  Then commit changes (make sure that your `.gitignore` has entry for swap files `*.swp`)
+A function should appear in the editor.  Then commit changes (make sure that your `.gitignore` has an entry for swap files `*.swp`)
 ```
 :Robby -c "Count function"
 ```
@@ -88,6 +88,13 @@ When it completes you should see a `for` loop now.
 And that's it!  The last thing to note is that if you want to just insert any generated code without ANY context then
 you can go into visual mode wherever you want that code to be written, but not highlight anything.  The plugin will
 detect visual mode but not add any context to the prompt.  
+
+In addition, you can also ask `Robby` questions and he will print to stdout.  It follows the same rules as code generation,
+where the context included with the prompt (or question in this case) is determined by whether you are in visual mode or not.
+If in visual mode, highlighted text will be injected into the context.  If in normal mode, entire file will be injected.
+```
+:Robby -q what is the find method doing in this code?
+```
 
 ## Contributing
 AI programming is an interesting new space and contributions are welcome and encouraged.  I'm interested in what seeing people can
