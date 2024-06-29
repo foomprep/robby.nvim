@@ -210,7 +210,6 @@ function! GetCodeChanges(prompt, old_code)
 endfunction
 
 " Entry point ;)
-" TODO create -rewind flag that restores git changes
 " TODO create -commit flag that commits git changes
 " TODO store Robby commands in local history and create -history flag to view and access them
 function! Main(line1, line2, prompt)
@@ -225,6 +224,12 @@ function! Main(line1, line2, prompt)
 		checktime
 		redraw!
 		echo "Changes erased space cowboy"
+		return
+	endif
+	if match(a:prompt, "-c") >= 0
+		call system("git add .")
+		call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
+		echo "Changes commited space cowboy"
 		return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
