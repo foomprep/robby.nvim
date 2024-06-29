@@ -1,5 +1,3 @@
-" TODO allow visual mode and highlighted text with question option
-" TODO inject context into question option
 " TODO handle unconnected error in curl request
 
 let g:system_message = { 
