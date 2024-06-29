@@ -257,7 +257,7 @@ function! Main(r, line1, line2, prompt)
 		else
 			let l:yanked_lines = GetFileContents()
 		endif
-		let l:user_message = a:prompt . "\n\nContext:\n" . l:yanked_lines
+		let l:user_message = a:prompt . "\n\nContext:\n" . yanked_lines
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
 	endif
@@ -269,12 +269,12 @@ function! Main(r, line1, line2, prompt)
 		return
 	endif
 	if match(a:prompt, "-c") >= 0
-		let l:commit_msg = substitute(a:prompt, "-c", '', 'g')
-		l:commit_msg = substitute(l:commit_msg, '"', '', 'g')
-		let cmd = 'Git commit -m "' . commit_msg . '"'
-		Git add .
-		execute cmd
-		echo "Changes commited space cowboy"
+		let l:commit_msg = substitute(substitute(a:prompt, "-c", '', 'g'), '"', '', 'g')
+		let l:commit_msg = trim(l:commit_msg)
+		let l:cmd = 'Git commit -m "' . l:commit_msg . '"'
+		execute 'Git add .'
+		execute l:cmd
+		echo "Changes committed, space cowboy"
 		return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
