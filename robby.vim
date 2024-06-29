@@ -212,13 +212,14 @@ endfunction
 " Entry point ;)
 " TODO create -rewind flag that restores git changes
 " TODO create -commit flag that commits git changes
-function! Robby(line1, line2, prompt)
+function! Main(line1, line2, prompt)
 	let cmdline_text = @:
 	" Asking a question will cancel all other options
 	if match(a:prompt, "-q") >= 0
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
 	endif
+	
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if IsVisualMode(cmdline_text)
             " Yank highlighted text, ask for updates from model
@@ -248,4 +249,4 @@ function! Robby(line1, line2, prompt)
     endif
 endfunction
 
-command! -range -nargs=* Robby call Robby(<line1>, <line2>, <q-args>)
+command! -range -nargs=* Robby call Main(<line1>, <line2>, <q-args>)
