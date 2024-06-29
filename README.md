@@ -9,6 +9,8 @@ This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/
 `vim-fugitive` please follow the instructions their to install before proceeding.  You should be using `vim-fugitive`.
 I repeat, you should be using `vim-fugitive`.
 
+The plugin also assumes you have `curl` installed on your system.
+
 To install you can use your favorite package manager like [vim-plug](https://github.com/junegunn/vim-plug)
 or use `vim`'s built-in package support:
 ```
