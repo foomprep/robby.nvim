@@ -1,4 +1,6 @@
 " TODO handle unconnected error in curl request
+" TODO add support for vscode
+" TODO add flag to include other files in context of prompt
 " TODO each time code is edited by Robby, automatically commit and use the
 " prompt as the commit message, then rewind to last commit using --rewind
 
