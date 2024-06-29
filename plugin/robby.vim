@@ -10,10 +10,13 @@ let g:system_message = {
 \ }
 
 let g:help_message = "Robby [options] [prompt]\n\n" .
-	\ "If no options are given, Robby will generate code according to the " .
+	\ "If no options are given, Robby will update code according to the " .
 	\ "prompt. If the editor is in visual mode when command is run then " .
 	\ "the highlighted text is used as context in the prompt, otherwise " .
-	\ "the entire file is used as context.\n\n" .
+	\ "the entire file is used as context.  If in visual mode, the highlighted " .
+	\ "code is replaced with the updated code, otherwise the ENTIRE " .
+	\ "file is edited and rewritten. To generate code with no context, enter visual " .
+	\ "on an empty line and then enter prompt normally. \n\n" .
 	\ "options:\n" .
 	\ "		-h 		Help message\n" .
 	\ "		-q		Ask question, prints to buffer, does not change code\n" .
