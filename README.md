@@ -33,10 +33,9 @@ export ANTHROPIC_API_KEY=<your anthropic_key
 ```
 Open `vim` and run
 ```
-:Robby -q hello
+:Robby -h
 ```
-to test that your environment is setup correctly and you have credits with your platform of choice.  The `-q` 
-tells the plugin to simply query the model for an answer to a question instead of editing the file.
+to check if it is installed correctly.  
 
 ## WARNING!!!  
 This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
