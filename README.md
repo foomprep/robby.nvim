@@ -2,7 +2,7 @@
 
 ![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
 
-Robby is a vim plugin that gives you the power to generate and edit code within your vim (or nvim) editor.
+Robby is a vim plugin that gives you the power to generate and edit code using language models within your vim (or nvim) editor.
 
 ## Installation
 To install you can use your favorite package manager like [vim-plug](https://github.com/junegunn/vim-plug)
