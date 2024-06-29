@@ -206,7 +206,6 @@ function! GetCodeChanges(prompt, old_code)
 endfunction
 
 " Entry point ;)
-" TODO store Robby commands in local history and create -history flag to view and access them
 function! Main(r, line1, line2, prompt)
 	" Asking a question will cancel all other options
 	if match(a:prompt, "-q") >= 0
