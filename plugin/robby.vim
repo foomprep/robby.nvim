@@ -253,13 +253,13 @@ function! Main(r, line1, line2, prompt)
 	if match(a:prompt, "-q") >= 0
 		" Check visual mode
 		if a:r > 0
-            let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
+			let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
 		else
 			let l:yanked_lines = GetFileContents()
 		endif
-		let l:user_message = a:prompt . "\n\nContext:\n" . yanked_lines
-		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
-    	return
+		let l:user_message = substitute(a:prompt, "-q", '', 'g') . "\n\nContext:\n" . l:yanked_lines
+		echo GetCompletion(l:user_message, "question")
+		return
 	endif
 	if match(a:prompt, "--rewind") >= 0
 		call system("git restore .")
