@@ -1,3 +1,6 @@
+let g:system_message = "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code."
+
+
 function! IsVisualMode(cmd_string)
     return match(a:cmd_string, "'<,'>")
 endfunction
@@ -103,15 +106,21 @@ function! EraseAndWriteToFile(new_text)
     call setpos('.', save_cursor)
 endfunction
 
-function! GetCompletion(user_message)
+function! GetCompletion(user_message, system_message)
+	if system_message == ""
+		let a:system_message = g:system_message
+	endif
 	if match($ROBBY_MODEL, "claude") >= 0
-		return GetAnthropicCompletion(a:user_message)
+		return GetAnthropicCompletion(a:user_message, a:system_message)
+	elseif match($ROBBY_MODEL, "gpt") >= 0
+		return GetOpenAICompletion(a:user_message, a:system_message)
 	else
 		echoerr "Model not supported."
 	endif
 endfunction
 
-function! GetOpenAICompletion(user_message)
+function! GetOpenAICompletion(user_message, system_message)
+	echo a:system_message
     " Check if the curl command is available
     if !executable('curl')
         echoerr "Error: curl is not available. Please install curl to use this function."
@@ -121,11 +130,19 @@ function! GetOpenAICompletion(user_message)
     " Prepare the API endpoint and request data
     let l:url = 'https://api.openai.com/v1/chat/completions'
     let l:data = json_encode({
-                \ 'prompt': a:user_message,
-                \ 'max_tokens': 150,
-                \ 'n': 1,
-                \ 'stop': '',
-                \ 'temperature': 0.7,
+				\ "model": $ROBBY_MODEL,
+                \ "max_tokens": 4096,
+                \ "temperature": 0,
+				\ "messages": [ 
+				\ 	{
+				\		"role": "system",
+				\ 		"content": a:system_message,
+				\	},
+				\ 	{
+				\		"role": "user",
+				\		"content": a:user_message,
+				\ 	},
+			  \ ]
             \ })
 
     " Construct the curl command
@@ -141,20 +158,21 @@ function! GetOpenAICompletion(user_message)
     let l:response = json_decode(l:result)
 
     " Check for errors in the API response
+	" TODO not sure if this err check works
     if has_key(l:response, 'error')
         echoerr "Error from OpenAI API: " . l:response.error.message
         return
     endif
 
     " Extract and return the generated text
-    return l:response.choices[0].text
+    return l:response.choices[0].message.content
 endfunction
 
-function! GetAnthropicCompletion(user_message)
+function! GetAnthropicCompletion(user_message, system_message)
     let json_data = json_encode({
         \ 'model': 'claude-3-5-sonnet-20240620',
         \ 'max_tokens': 1024,
-        \ 'system': 'You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context',
+		\ 'system': g:system_message,
         \ 'messages': [
         \   {'role': 'user', 'content': a:user_message}
         \ ]
@@ -189,7 +207,7 @@ function! GetCodeChanges(prompt, old_code)
         \ a:old_code . "\n\n" .
         \ "Changes to be made:\n" .
         \ a:prompt
-    return GetCompletion(user_message)
+    return GetCompletion(user_message, "")
 endfunction
 
 " Entry point ;)
@@ -197,7 +215,7 @@ function! Robby(line1, line2, prompt)
 	let cmdline_text = @:
 	if match(a:prompt, "-q") >= 0
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'))
-		return
+    	return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if IsVisualMode(cmdline_text)
