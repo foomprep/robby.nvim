@@ -48,6 +48,7 @@ and then try again.  Rinse and repeat.  This project assumes you are working wit
 ## Quickstart
 As an example, we'll build a simple python script.  Begin by creating the project and initializing git
 ```
+cd
 mkdir my-sample-app && cd my-sample-app
 git init
 vim fact.py
