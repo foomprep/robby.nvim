@@ -260,7 +260,7 @@ function! Main(r, line1, line2, prompt)
 	endif
 	if match(a:prompt, "-c") >= 0
 		Git add .
-		Gcommit -m substitute(a:prompt, "-c", '', 'g')
+		Git commit -m substitute(a:prompt, "-c", '', 'g')
 		echo "Changes commited space cowboy"
 		return
 	endif
