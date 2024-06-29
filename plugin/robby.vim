@@ -260,12 +260,12 @@ function! Main(r, line1, line2, prompt)
 	endif
 	" TODO this does not work because of the .swp file that is open 
 	" while vim editor is open	
-	"if match(a:prompt, "-c") >= 0
-	"	call system("git add .")
-	"	call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
-	"	echo "Changes commited space cowboy"
-	"	return
-	"endif
+	if match(a:prompt, "-c") >= 0
+		call system("git add .")
+		call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
+		echo "Changes commited space cowboy"
+		return
+	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
         if a:r > 0 
 			" In visual mode
