@@ -222,6 +222,7 @@ function! Main(line1, line2, prompt)
 	endif
 	if match(a:prompt, "--rewind") >= 0
 		call system("git restore .")
+		checktime
 		redraw!
 		echo "Changes erased space cowboy"
 		return
