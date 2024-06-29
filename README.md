@@ -9,7 +9,7 @@ To install you can use your favorte package manager like [vim-plug](https://gith
 or use `vim`'s built-in package support:
 ```
 mkdir -p ~/.vim/pack/robby/start
-cd ~/.vim/pack/robby start
+cd ~/.vim/pack/robby/start
 git clone https://github.com/joorjeh/robby.git
 ```
 
