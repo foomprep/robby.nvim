@@ -218,9 +218,10 @@ endfunction
 " Entry point ;)
 function! Main(r, line1, line2, prompt)
 	" Asking a question will cancel all other options
-	if match(a:prompt, "-h" | "--help") >= 0
+	if match(a:prompt, "-h") >= 0
 		echo g:help_message
 		return
+	endif
 	if match(a:prompt, "-q") >= 0
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
     	return
