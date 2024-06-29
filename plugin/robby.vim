@@ -1,4 +1,5 @@
 " TODO allow visual mode and highlighted text with question option
+" TODO inject context into question option
 
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
@@ -242,6 +243,7 @@ endfunction
 
 " Entry point ;)
 function! Main(r, line1, line2, prompt)
+	" TODO refactor into function that parses args
 	" Asking a question will cancel all other options
 	if match(a:prompt, "-h") >= 0
 		echo g:help_message
