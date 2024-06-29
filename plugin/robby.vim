@@ -1,5 +1,6 @@
 " TODO allow visual mode and highlighted text with question option
 " TODO inject context into question option
+" TODO handle unconnected error in curl request
 
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
@@ -268,7 +269,7 @@ function! Main(r, line1, line2, prompt)
 	endif
 	if match(a:prompt, "-c") >= 0
 		let commit_msg = substitute(a:prompt, "-c", '', 'g')
-		let cmd = 'Git commit -m "' . escape(commit_msg, '"') . '"'
+		let cmd = 'Git commit -m "' . commit_msg . '"'
 		Git add .
 		execute cmd
 		echo "Changes commited space cowboy"
