@@ -3,11 +3,11 @@ let g:system_message = {
     \ "question": "" 
 \ }
 
-let g:help_message = "Robby [options] [prompt]" .
+let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "If no options are given, Robby will generate code according to the " .
 	\ "prompt. If the editor is in visual mode when command is run then " .
 	\ "the highlighted text is used as context in the prompt, otherwise " .
-	\ "the entire file is used as context.\n" .
+	\ "the entire file is used as context.\n\n" .
 	\ "options:\n"
 	\ "		-h 			Help message\n" .
 	\ "		-q			Ask question, prints to buffer, does not change code\n" .
