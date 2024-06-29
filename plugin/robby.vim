@@ -262,7 +262,7 @@ function! Main(r, line1, line2, prompt)
 	" while vim editor is open	
 	if match(a:prompt, "-c") >= 0
 		Git add .
-		Git commit -m "hello"
+		Git commit -m substitute(a:prompt, "-c", '', 'g')
 		echo "Changes commited space cowboy"
 		return
 	endif
