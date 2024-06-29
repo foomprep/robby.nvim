@@ -9,8 +9,8 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "the highlighted text is used as context in the prompt, otherwise " .
 	\ "the entire file is used as context.\n\n" .
 	\ "options:\n" .
-	\ "		-h 			Help message\n" .
-	\ "		-q			Ask question, prints to buffer, does not change code\n" .
+	\ "		-h 		Help message\n" .
+	\ "		-q		Ask question, prints to buffer, does not change code\n" .
 	\ "		--rewind	Rewind all written changes not commited\n"
 
 function! YankRangeOfLines(start_line, end_line)
