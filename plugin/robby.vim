@@ -233,6 +233,8 @@ function! Main(r, line1, line2, prompt)
 		echo "Changes erased space cowboy"
 		return
 	endif
+	" TODO this does not work because of the .swp file that is open 
+	" while vim editor is open	
 	"if match(a:prompt, "-c") >= 0
 	"	call system("git add .")
 	"	call system("git commit -m " . substitute(a:prompt, "-c", '', 'g'))
