@@ -1,3 +1,5 @@
+" TODO allow visual mode and highlighted text with question option
+
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.", 
     \ "question": "" 
@@ -107,10 +109,33 @@ function! GetFileContents()
 endfunction
 
 function! EraseAndWriteToFile(new_text)
-    let save_cursor = getcurpos('.')
-    silent execute 'normal! ggVGd'
-    call append(0, split(a:new_text, "\n"))
-    silent write
+    " Save the current cursor position
+    let save_cursor = getcurpos()
+    
+    " Ensure we're at the beginning of the file
+    silent! normal! gg
+
+    " Delete all lines in the buffer
+    silent! %delete _
+
+    " Split the new text into lines and append them to the buffer
+    call setline(1, split(a:new_text, "\n"))
+
+    " Try to save the file
+    try
+        silent write
+    catch
+        echohl ErrorMsg
+        echomsg "Failed to write to file: " . v:exception
+        echohl None
+        return
+    endtry
+
+    " Restore cursor position, but ensure it's within bounds
+    let max_line = line('$')
+    let max_col = col([max_line, '$'])
+    let save_cursor[1] = min([save_cursor[1], max_line])
+    let save_cursor[2] = min([save_cursor[2], max_col])
     call setpos('.', save_cursor)
 endfunction
 
