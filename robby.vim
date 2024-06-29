@@ -3,6 +3,11 @@ let g:system_message = {
     \ "question": "" 
 \ }
 
+function! SaveToRobbyHistory(cmd_string)
+	echo a:cmd_string
+	call writefile([a:cmd_string], '.robby_history', 'a')
+endfunction
+
 function! IsVisualMode(cmd_string)
     return match(a:cmd_string, "'<,'>")
 endfunction
@@ -169,7 +174,7 @@ endfunction
 
 function! GetAnthropicCompletion(user_message, system_message)
     let json_data = json_encode({
-        \ 'model': 'claude-3-5-sonnet-20240620',
+        \ 'model': $ROBBY_MODEL,
         \ 'max_tokens': 1024,
 		\ 'system': a:system_message,
         \ 'messages': [
@@ -210,10 +215,8 @@ function! GetCodeChanges(prompt, old_code)
 endfunction
 
 " Entry point ;)
-" TODO create -commit flag that commits git changes
 " TODO store Robby commands in local history and create -history flag to view and access them
-function! Main(line1, line2, prompt)
-	let cmdline_text = @:
+function! Main(r, line1, line2, prompt)
 	" Asking a question will cancel all other options
 	if match(a:prompt, "-q") >= 0
 		echo GetCompletion(substitute(a:prompt, "-q", '', 'g'), "question")
@@ -233,10 +236,12 @@ function! Main(line1, line2, prompt)
 		return
 	endif
     if exists('$ROBBY_MODEL') && !empty($ROBBY_MODEL)
-        if IsVisualMode(cmdline_text)
+        if a:r > 0: 
+			" In visual mode
             " Yank highlighted text, ask for updates from model
             " and replace highlighted text with update
-            " Save some money babee!
+			" You can enter visual mode without highlighting text
+			" to generate without context
             let yanked_lines = YankRangeOfLines(a:line1, a:line2)
             let new_text = GetCodeChanges(a:prompt, yanked_lines)
             let parsed_text = ExtractCodeBlock(new_text)
@@ -245,7 +250,8 @@ function! Main(line1, line2, prompt)
             else
                 call ReplaceLinesInRange(a:line1, a:line2, parsed_text)
             endif
-        else
+        else 
+			" In normal mode
             " This will use all lines of current file and replace
             " entire file by updated code returned by model
             let new_text = GetCodeChanges(a:prompt, GetFileContents())
@@ -261,4 +267,4 @@ function! Main(line1, line2, prompt)
     endif
 endfunction
 
-command! -range -nargs=* Robby call Main(<line1>, <line2>, <q-args>)
+command! -range -nargs=* Robby call Main(<range>, <line1>, <line2>, <q-args>)
