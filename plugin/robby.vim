@@ -3,6 +3,7 @@
 " TODO add flag to include other files in context of prompt
 " TODO each time code is edited by Robby, automatically commit and use the
 " prompt as the commit message, then rewind to last commit using --rewind
+" TODO spinner
 
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
@@ -109,7 +110,7 @@ function! ExtractCodeBlock(text)
 endfunction
 
 " Yank all lines of current file
-function! GetFileContents()
+function! YankAllLines()
     silent execute 'normal! ggVGy'
     let file_content = @"
     return file_content
@@ -272,7 +273,7 @@ function! Main(r, line1, line2, prompt)
         if a:r > 0
             let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
         else
-            let l:yanked_lines = GetFileContents()
+            let l:yanked_lines = YankAllLines()
         endif
         let l:user_message = substitute(l:args.prompt, "-q", '', 'g') . "\n\nContext:\n" . l:yanked_lines
         echo GetCompletion(l:user_message, "question")
@@ -316,7 +317,7 @@ function! Main(r, line1, line2, prompt)
             " In normal mode
             " This will use all lines of current file and replace
             " entire file by updated code returned by model
-            let l:new_text = GetCodeChanges(l:args.prompt, GetFileContents())
+            let l:new_text = GetCodeChanges(l:args.prompt, YankAllLines())
             let l:parsed_text = ExtractCodeBlock(l:new_text)
             if strlen(l:parsed_text) <= 0
                 echo l:new_text 
