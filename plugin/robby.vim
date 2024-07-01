@@ -280,6 +280,13 @@ function! GetAnthropicCompletion(user_message, system_message)
     endif
 endfunction
 
+function! FormatString(str)
+    let formatted = substitute(a:str, '\n\n', "\n\n", 'g')
+    let formatted = substitute(formatted, '\n', "\n", 'g')
+    return formatted
+endfunction
+
+" TODO if the other window is closed this does not change!
 let g:chat_window_num = 0
 
 function! PrintStringToNewChat(str)
@@ -288,15 +295,14 @@ function! PrintStringToNewChat(str)
 	let l:buf_num = bufnr('%')
 	let g:chat_window_num = winnr()
 	echo "Chat window num " . g:chat_window_num
-	call setbufline(l:buf_num, line('$'), a:str)
+	call setbufline(l:buf_num, line('$'), FormatString(a:str))
 	wincmd p
 endfunction
 
 function! PrintStringToChat(str)
-	echo "Chat window num " . g:chat_window_num
 	execute g:chat_window_num . 'wincmd w'
 	let l:buf_num = bufnr('%')
-	call setbufline(l:buf_num, line('$'), a:str)
+	call appendbufline(l:buf_num, line('$'), FormatString(a:str))
 	wincmd p
 endfunction
 
