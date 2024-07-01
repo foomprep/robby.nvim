@@ -1,9 +1,9 @@
-" TODO handle unconnected error in curl request
 " TODO add support for vscode
 " TODO add flag to include other files in context of prompt
 " TODO each time code is edited by Robby, automatically commit and use the
 " prompt as the commit message, then rewind to last commit using --rewind
 " TODO spinner
+" TODO Add support for OSX
 
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
@@ -147,15 +147,55 @@ function! EraseAndWriteToFile(new_text)
     call setpos('.', save_cursor)
 endfunction
 
+let g:spinner_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+let g:spinner_index = 0
+let g:spinner_timer = 0
+
+function! UpdateSpinner(timer)
+    let g:spinner_index = (g:spinner_index + 1) % len(g:spinner_frames)
+    echo g:spinner_frames[g:spinner_index] . ' Processing...'
+    redraw
+endfunction
+
+function! StartSpinner()
+	echo "StartSpinner"
+    let g:spinner_index = 0
+    let g:spinner_timer = timer_start(100, UpdateSpinner, {'repeat': -1})
+    redraw
+endfunction
+
+function! StopSpinner()
+    if g:spinner_timer
+        call timer_stop(g:spinner_timer)
+        let g:spinner_timer = 0
+        echo ''
+        redraw
+    endif
+endfunction
+
 function! GetCompletion(user_message, query_type)
-	" TODO add support for ollama and other models
-	if match($ROBBY_MODEL, "claude") >= 0
-		return GetAnthropicCompletion(a:user_message, g:system_message[a:query_type])
-	elseif match($ROBBY_MODEL, "gpt") >= 0
-		return GetOpenAICompletion(a:user_message, g:system_message[a:query_type])
-	else
-		echoerr "Model not supported."
-	endif
+    " Start the spinner
+    call StartSpinner()
+
+    " TODO add support for ollama and other models
+    try
+        if match($ROBBY_MODEL, "claude") >= 0
+            let result = GetAnthropicCompletion(a:user_message, g:system_message[a:query_type])
+        elseif match($ROBBY_MODEL, "gpt") >= 0
+            let result = GetOpenAICompletion(a:user_message, g:system_message[a:query_type])
+        else
+            throw "Model not supported."
+        endif
+    catch
+        " Stop the spinner in case of an error
+        call StopSpinner()
+        echoerr v:exception
+    finally
+        " Stop the spinner when the function is done
+        call StopSpinner()
+    endtry
+
+    return result
 endfunction
 
 function! GetOpenAICompletion(user_message, system_message)
@@ -240,12 +280,42 @@ function! GetAnthropicCompletion(user_message, system_message)
     endif
 endfunction
 
+let g:chat_window_num = 0
+
+function! PrintStringToNewChat(str)
+	vsplit
+	enew
+	let l:buf_num = bufnr('%')
+	let g:chat_window_num = winnr()
+	echo "Chat window num " . g:chat_window_num
+	call setbufline(l:buf_num, line('$'), a:str)
+	wincmd p
+endfunction
+
+function! PrintStringToChat(str)
+	echo "Chat window num " . g:chat_window_num
+	execute g:chat_window_num . 'wincmd w'
+	let l:buf_num = bufnr('%')
+	call setbufline(l:buf_num, line('$'), a:str)
+	wincmd p
+endfunction
+
+function! AskQuestion(user_message)
+    let l:completion = GetCompletion(a:user_message, "question")
+	let l:n_windows = winnr('$')
+	if l:n_windows < 2
+		call PrintStringToNewChat(l:completion)		
+	else
+		call PrintStringToChat(l:completion)
+	endif
+endfunction
+
 function! GetCodeChanges(prompt, old_code)
-    let user_message =  "code section:\n" .
+    let l:user_message =  "code section:\n" .
         \ a:old_code . "\n\n" .
         \ "Changes to be made:\n" .
         \ a:prompt
-    return GetCompletion(user_message, "code")
+    return GetCompletion(l:user_message, "code")
 endfunction
 
 " Function to parse arguments from the prompt
@@ -273,10 +343,10 @@ function! Main(r, line1, line2, prompt)
         if a:r > 0
             let l:yanked_lines = YankRangeOfLines(a:line1, a:line2)
         else
-            let l:yanked_lines = YankAllLines()
+            let l:yanked_lines = ""
         endif
         let l:user_message = substitute(l:args.prompt, "-q", '', 'g') . "\n\nContext:\n" . l:yanked_lines
-        echo GetCompletion(l:user_message, "question")
+		call AskQuestion(l:user_message)
         return
     endif
 
