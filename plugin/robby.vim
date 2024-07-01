@@ -284,10 +284,10 @@ endfunction
 let g:chat_window_num = 0
 
 function! WriteStringToChat(str, buf_num)
-	let l:split_string = split(a:str, "\n")
-	call insert(l:split_string, '')  " Add an empty string to the beginning
+	let l:slist = split(a:str, "\n")
+	call insert(l:slist, '')  " Add an empty string to the beginning
 	execute g:chat_window_num . 'wincmd w'
-	call appendbufline(a:buf_num, line('$'), l:split_string)
+	call appendbufline(a:buf_num, line('$'), l:slist)
 	write
 	wincmd p
 endfunction
