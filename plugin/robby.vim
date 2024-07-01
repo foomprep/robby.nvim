@@ -2,7 +2,7 @@
 " TODO add flag to include other files in context of prompt
 " TODO each time code is edited by Robby, automatically commit and use the
 " prompt as the commit message, then rewind to last commit using --rewind
-" TODO spinner
+" TODO fix spinner
 " TODO Add support for OSX
 
 " Global variables
@@ -24,17 +24,26 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "		-q		Ask question, prints to buffer, does not change code\n" .
 	\ "		--rewind	Rewind all written unstaged changes\n"
 
-" Mappings
-cnoremap q call CustomQuitFunction()<CR>
+" Create an autocommand to intercept :q
+autocmd CmdlineLeave * call s:intercept_quit()
 
+" TODO this currently does not work
 function! CustomQuitFunction()
 	let l:wnum = winnr()
-	if g:chat_window_num == l:wnum
+	if str2nr(g:chat_window_num) == str2nr(l:wnum)
 		quit
 	else
 		quitall
 	endif
 	quitall
+endfunction
+
+function! s:intercept_quit()
+    if getcmdtype() == ':' && getcmdline() == 'q'
+        call CustomQuitFunction()
+        return 1
+    endif
+    return 0
 endfunction
 
 function! YankRangeOfLines(start_line, end_line)
