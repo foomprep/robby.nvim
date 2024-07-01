@@ -286,24 +286,12 @@ endfunction
 " TODO if the other window is closed this does not change!
 let g:chat_window_num = 0
 
-function! PrintStringToNewChat(str)
-	let l:split_string = split(a:str, "\n")
-	call insert(l:split_string, '')  " Add an empty string to the beginning
-	vsplit
-	enew
-	let l:buf_num = bufnr('%')
-	let g:chat_window_num = winnr()
-	echo "Chat window num " . g:chat_window_num
-	call setbufline(l:buf_num, line('$'), l:split_string)
-	wincmd p
-endfunction
-
-function! PrintStringToChat(str)
+function! WriteStringToChat(str, buf_num)
 	let l:split_string = split(a:str, "\n")
 	call insert(l:split_string, '')  " Add an empty string to the beginning
 	execute g:chat_window_num . 'wincmd w'
-	let l:buf_num = bufnr('%') 
-	call appendbufline(l:buf_num, line('$'), l:split_string)
+	call appendbufline(a:buf_num, line('$'), l:split_string)
+	write
 	wincmd p
 endfunction
 
@@ -311,9 +299,14 @@ function! AskQuestion(user_message)
     let l:completion = GetCompletion(a:user_message, "question")
 	let l:n_windows = winnr('$')
 	if l:n_windows < 2
-		call PrintStringToNewChat(l:completion)		
+		vnew
+		edit .chat_history
+		let g:chat_window_num = winnr()
+		execute g:chat_window_num . 'wincmd w'
+		call WriteStringToChat(l:completion, bufnr('%'))		
 	else
-		call PrintStringToChat(l:completion)
+		execute g:chat_window_num . 'wincmd w'
+		call WriteStringToChat(l:completion, bufnr('%'))
 	endif
 endfunction
 
