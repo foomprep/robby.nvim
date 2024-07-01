@@ -5,11 +5,12 @@
 " TODO spinner
 " TODO Add support for OSX
 
+" Global variables
+let g:chat_window_num = 0
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
     \ "question": "" 
 \ }
-
 let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "If no options are given, Robby will update code according to the " .
 	\ "prompt. If the editor is in visual mode when command is run then " .
@@ -22,6 +23,19 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "		-h 		Help message\n" .
 	\ "		-q		Ask question, prints to buffer, does not change code\n" .
 	\ "		--rewind	Rewind all written unstaged changes\n"
+
+" Mappings
+cnoremap q call CustomQuitFunction()<CR>
+
+function! CustomQuitFunction()
+	let l:wnum = winnr()
+	if g:chat_window_num == l:wnum
+		quit
+	else
+		quitall
+	endif
+	quitall
+endfunction
 
 function! YankRangeOfLines(start_line, end_line)
     " Save the current register setting and cursor position
@@ -280,8 +294,6 @@ function! GetAnthropicCompletion(user_message, system_message)
     endif
 endfunction
 
-" TODO if the other window is closed this does not change!
-let g:chat_window_num = 0
 
 function! WriteStringToChat(str, buf_num)
 	let l:slist = split(a:str, "\n")
