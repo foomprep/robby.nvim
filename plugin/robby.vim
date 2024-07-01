@@ -357,7 +357,7 @@ function! Main(r, line1, line2, prompt)
 
     if l:args.commit
         let l:commit_msg = substitute(substitute(l:args.prompt, "-c", '', 'g'), '"', '', 'g')
-        let l:commit_msg = trim(l:commit_msg)
+        let l:commit_msg = trim(l:commit_msg) " Remove all control characters
         let l:cmd = 'Git commit -m "' . l:commit_msg . '"'
         execute 'Git add .'
         execute l:cmd
