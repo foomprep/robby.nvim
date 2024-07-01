@@ -304,12 +304,12 @@ endfunction
 
 function! WriteStringToChat(str, buf_num)
 	let l:slist = split(a:str, "\n")
-	call insert(l:slist, '')  " Add an empty string to the beginning
 	let l:separator = repeat('=', 50)  " Create a string of 80 '=' characters
 	call add(l:slist, l:separator)  " Add the separator to the end of slist
 	execute g:chat_window_num . 'wincmd w'
 	call appendbufline(a:buf_num, line('$'), l:slist)
 	write
+	execute 'normal! G'
 	wincmd p
 endfunction
 
