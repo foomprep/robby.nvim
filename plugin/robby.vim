@@ -5,6 +5,9 @@
 " TODO spinner
 " TODO Add support for OSX
 
+" Maps
+nnoremap <leader>q :qa<CR> 
+
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
     \ "question": "" 
@@ -285,6 +288,7 @@ let g:chat_window_num = 0
 
 function! PrintStringToNewChat(str)
 	let l:split_string = split(a:str, "\n")
+	call insert(l:split_string, '')  " Add an empty string to the beginning
 	vsplit
 	enew
 	let l:buf_num = bufnr('%')
@@ -296,6 +300,7 @@ endfunction
 
 function! PrintStringToChat(str)
 	let l:split_string = split(a:str, "\n")
+	call insert(l:split_string, '')  " Add an empty string to the beginning
 	execute g:chat_window_num . 'wincmd w'
 	let l:buf_num = bufnr('%') 
 	call appendbufline(l:buf_num, line('$'), l:split_string)
