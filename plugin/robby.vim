@@ -25,26 +25,26 @@ let g:help_message = "Robby [options] [prompt]\n\n" .
 	\ "		--rewind	Rewind all written unstaged changes\n"
 
 " Create an autocommand to intercept :q
-autocmd CmdlineLeave * call s:intercept_quit()
-
+"autocmd CmdlineLeave * call s:intercept_quit()
+"
 " TODO this currently does not work
-function! CustomQuitFunction()
-	let l:wnum = winnr()
-	if str2nr(g:chat_window_num) == str2nr(l:wnum)
-		quit
-	else
-		quitall
-	endif
-	quitall
-endfunction
-
-function! s:intercept_quit()
-    if getcmdtype() == ':' && getcmdline() == 'q'
-        call CustomQuitFunction()
-        return 1
-    endif
-    return 0
-endfunction
+"function! CustomQuitFunction()
+"	let l:wnum = winnr()
+"	if str2nr(g:chat_window_num) == str2nr(l:wnum)
+"		quit
+"	else
+"		quitall
+"	endif
+"	quitall
+"endfunction
+"
+"function! s:intercept_quit()
+"    if getcmdtype() == ':' && getcmdline() == 'q'
+"        call CustomQuitFunction()
+"        return 1
+"    endif
+"    return 0
+"endfunction
 
 function! YankRangeOfLines(start_line, end_line)
     " Save the current register setting and cursor position
@@ -181,7 +181,6 @@ function! UpdateSpinner(timer)
 endfunction
 
 function! StartSpinner()
-	echo "StartSpinner"
     let g:spinner_index = 0
     let g:spinner_timer = timer_start(100, UpdateSpinner, {'repeat': -1})
     redraw
