@@ -5,9 +5,6 @@
 " TODO spinner
 " TODO Add support for OSX
 
-" Maps
-nnoremap <leader>q :qa<CR> 
-
 let g:system_message = { 
     \ "code": "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks.", 
     \ "question": "" 
