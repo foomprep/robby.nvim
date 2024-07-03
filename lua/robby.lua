@@ -295,6 +295,7 @@ end, {nargs = '*', range = true})
 
 vim.api.nvim_create_user_command('Rewind', function(opts)
     vim.fn.system("git restore .")
+    vim.cmd('redraw!')
 end, {nargs = 0})
 
 vim.api.nvim_create_user_command('History', function(opts)
