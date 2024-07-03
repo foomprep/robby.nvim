@@ -21,13 +21,10 @@ export ROBBY_MODEL=gpt-4o
 ```
 Relevant api keys should be in the environment for the platform used, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
 
-<div style="background-color: #ffcccc; border: 1px solid #ff0000; padding: 10px; margin-bottom: 15px;">
-  <strong style="color: #ff0000;">WARNING!!!</strong>
-  <p style="margin: 5px 0 0 0;">
-    This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
-    Make sure that you are using it to edit/generate code for a project that has <code>git</code>.
-  </p>
-</div>
+| :exclamation:  Warning   |
+|-----------------------------------------|
+This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
+Make sure that you are using it to edit/generate code for a project that has <code>git</code>.
 
 ## Usage
 Open new file
