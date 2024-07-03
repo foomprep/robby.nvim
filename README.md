@@ -8,7 +8,21 @@ To install, either download directly into `nvim` config
 mkdir -p ~/.config/nvim/plugin && cd ~/.config/nvim/plugin
 git clone https://github.com/joorjeh/robby.git
 ```
-or use a package manager like `lazy.vim` or `vim-plug`.
+or you can use `vim-plug`.  Your `init.vim` would look like this
+```
+call plug#begin()
+
+Plug 'joorjeh/robby'
+// Possibly other packages
+
+call plug#end()
+
+lua << EOF
+require('robby')
+EOF
+```
+This plugin is not configured to work with `lazy.nvim`.  Personally I spent a few hours trying to setup `lazy` and
+it just doesn't seem worth it.  You can always download directly per above if package managers don't work.
 
 The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, set the environment variable
 `ROBBY_MODEL` with your model of choice.  For example, to use Anthropic's current Sonnet model:
