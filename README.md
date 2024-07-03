@@ -1,8 +1,6 @@
-# robby.vim
+# robby the robot (an AI coding assistant for nvim)
 
 ![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
-
-Robby is an AI coding assistant plugin for `nvim`.  It is currently experimental.
 
 ## Installation
 To install, either download directly into `nvim` config
