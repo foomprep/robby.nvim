@@ -48,6 +48,7 @@ model query assumes that you are trying to update or edit code but it can be pre
 highlight a function(s) and will give some prompt saying how to change it and it works magically!  Or I will prompt the model
 to generate a new function given some other one. 
 
+There are also some helper user commands
 ```
 :AskRobby write your question here (query the model with any question but do not insert code changes, only output to `stdout`)
 :History (view history of `AskRobby` using `less` in the editor.
