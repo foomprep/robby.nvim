@@ -174,7 +174,6 @@ end
 
 -- TODO generalize this so that depending on model used the cmd variable changes
 local function generate_curl_command(prompt, system_message, max_tokens)
-	print("System message: " .. system_message)
 	local model = os.getenv("ROBBY_MODEL")
 	if not model then
 		error("ROBBY_MODEL environment variable must be set cowboy!")
@@ -295,7 +294,7 @@ vim.api.nvim_create_user_command('AskRobby', function(opts)
 end, {nargs = '*', range = true})
 
 vim.api.nvim_create_user_command('Rewind', function(opts)
-	vim.cmd("Git restore .")
+	vim.system("git restore .")
 end, {nargs = 0})
 
 vim.api.nvim_create_user_command('History', function(opts)
