@@ -294,7 +294,7 @@ vim.api.nvim_create_user_command('AskRobby', function(opts)
 end, {nargs = '*', range = true})
 
 vim.api.nvim_create_user_command('Rewind', function(opts)
-	vim.system("git restore .")
+    vim.fn.system("git restore .")
 end, {nargs = 0})
 
 vim.api.nvim_create_user_command('History', function(opts)
