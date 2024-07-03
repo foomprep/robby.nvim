@@ -21,8 +21,7 @@ export ROBBY_MODEL=gpt-4o
 ```
 Relevant api keys should be in the environment for the platform used, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
 
-| :warning:  This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file. Make sure that you are using it to edit/generate code for a project that has <code>git</code>. |
-|-----------------------------------------|
+| :warning:  This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file. Make sure that you are using `git` and there are no uncommitted changes.  It's important that you are able to restore all the changes made by robby or you may lose large portions of your work forever |
 
 ## Usage
 Open new file
