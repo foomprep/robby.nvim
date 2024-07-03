@@ -2,104 +2,64 @@
 
 ![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
 
-Robby is a vim plugin that gives you the power to generate and edit code using language models within your vim (or nvim) editor. 
-
-The plugin is in alpha and will most likely change frequently (but maybe not?).
+Robby is an AI coding assistant plugin for `nvim`.  It is currently experimental.
 
 ## Installation
-This plugins relies on commands used in [vim-fugitive](https://github.com/tpope/vim-fugitive).  If you don't already use
-`vim-fugitive` please follow the instructions their to install before proceeding.  
-
-The plugin also assumes you have `curl` installed on your system.
-
-To install you can use your favorite package manager like [vim-plug](https://github.com/junegunn/vim-plug)
-or use `vim`'s built-in package support:
+To install, either download directly into `nvim` config
 ```
-mkdir -p ~/.vim/pack/robby/start
-cd ~/.vim/pack/robby/start
+mkdir -p ~/.config/nvim/plugin && cd ~/.config/nvim/plugin
 git clone https://github.com/joorjeh/robby.git
 ```
+or use a package manager like `lazy.vim` or `vim-plug`.
 
 The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, set the environment variable
-`ROBBY_MODEL` with your model of choice.  For example, to use Anthropic's newest Sonnet model:
+`ROBBY_MODEL` with your model of choice.  For example, to use Anthropic's current Sonnet model:
 ```
 export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```
-The plugin will only work with text models (or multimodal models that use text).  Currently working on integrating with ollama/llama.cpp backend so you
-can use open source models.  The plugin assumes you have the environemnt variables set for the platform tokens, so either one of these:
+or OpenAI's new model
 ```
-export OPENAI_API_KEY=<your key>
-export ANTHROPIC_API_KEY=<your anthropic_key
+export ROBBY_MODEL=gpt-4o
 ```
-Open `vim` and run
-```
-:Robby -h
-```
-to check if it is installed correctly.  
+Relevant api keys should be in the environment for the platform used, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
 
-## WARNING!!!  
-This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
-Make sure that you are using it to edit/generate code for a project that has `git`. 
+<div style="background-color: #ffcccc; border: 1px solid #ff0000; padding: 10px; margin-bottom: 15px;">
+  <strong style="color: #ff0000;">WARNING!!!</strong>
+  <p style="margin: 5px 0 0 0;">
+    This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file.
+    Make sure that you are using it to edit/generate code for a project that has <code>git</code>.
+  </p>
+</div>
 
-The basic workflow is that you generate a new function or make an edit and then either `rewind` the change or commit and 
-move incrementally in this way.  `Robby` has a `rewind` command that is just syntactic sugar for `git restore .`.
-This is because in many cases the code generation will not work or maybe you didn't prompt correctly, so sometimes you end
-up trying something, doesn't work, you rewind with 
+## Usage
+Open new file
 ```
-:Robby --rewind
+touch test & nvim test 
 ```
-and then try again.  Rinse and repeat.  This project assumes you are working within a git repository.  Disobey at your peril!
+To generate code from scratch (without any context) there are two options, first you can generate code inline using the key
+mapping `#;` on a line with the prompt.  For example,
+```
+Generate a function to find all primes up to n #;
+```
+when you type in `#;` at the end in INSERT mode it will disappear and the plugin will generate code based on the text of the line
+and then inject that code at the same line, replacing it.  The other way to generate from scratch is the user command `TellRobby`.
+It only works in VISUAL mode, but if you go to an empty line and enter VISUAL MODE without selecting text, then run 
+```
+:'<,'>TellRobby write your prompt here
+```
+it will generate code based on the prompt and insert it at the line where you ran the command.  The plugin command run using `uv` so
+you can fire off commands and then go to other parts of your code if you like while it is running.
 
-## Quickstart
-As an example, we'll build a simple python script.  Begin by creating the project and initializing git
-```
-cd
-mkdir my-sample-app && cd my-sample-app
-git init
-vim substring.py
-```
-Let's generate a function
-```
-:Robby Generate a function that counts the number of a substring present in a given string
-```
-A function should appear in the editor.  Then commit changes (make sure that your `.gitignore` has an entry for swap files `*.swp`)
-```
-:Robby -c "Count function"
-```
-This command is just wrapper for the lovely plugin `vim-fugitive` by `tpope`.  It stages all changes and then commits them with the given 
-message. If you prefer to just `Git` that will work fine. Now, let's change the function a little bit.  Reopen the file and run
-```
-:Robby add the end argument to the find method as the length of the given string
-```
-The find method should now change.  Let's say we didn't like this change.  Then we can simply run
-```
-:Robby --rewind
-```
-and all unstaged changes will be removed.  Now in each of these changes the entire file is being included in the prompt
-and the entire file is being updated by the completion.  Instead, if we only want to update some part of the code that
-does not need the rest of file for context, we can use visual mode to highlight the text we want to include in the context.
-What is returned by the completion will replace only highlighted text in place.  Go into visual mode and highlight the 
-`while` loop in the code.  Then run the editor command (the braces before `Robby` will be added automatically if you are in
-visual mode
-```
-:'<,'>Robby turn this while loop into a for loop
-```
-When it completes you should see a `for` loop now.  
+`TellRobby` will yank whatever text is selected in VISUAL mode and include it as context to the prompt.  The system message for the
+model query assumes that you are trying to update or edit code but it can be pretty versatile in terms of generation.  I frequently 
+highlight a function(s) and will give some prompt saying how to change it and it works magically!  Or I will prompt the model
+to generate a new function given some other one. 
 
-And that's it!  The last thing to note is that if you want to just insert any generated code without ANY context then
-you can go into visual mode wherever you want that code to be written, but not highlight anything.  The plugin will
-detect visual mode but not add any context to the prompt.  
+```
+:AskRobby write your question here (query the model with any question but do not insert code changes, only output to `stdout`)
+:History (view history of `AskRobby` using `less` in the editor.
+:Rewind (syntactic sugar to `git restore .`, requires [vim-fugitive](https://github.com/tpope/vim-fugitive)
+```
+## Fin
+If you like this plugin please consider sharing it :)
 
-In addition, you can also ask `Robby` questions and he will print to stdout.  It follows the same rules as code generation,
-where the context included with the prompt (or question in this case) is determined by whether you are in visual mode or not.
-If in visual mode, highlighted text will be injected into the context.  If in normal mode, entire file will be injected.
-```
-:Robby -q what is the find method doing in this code?
-```
-
-## Contributing
-AI programming is an interesting new space and contributions are welcome and encouraged.  I'm interested in what seeing people can
-do with very simple tools that leverage language models. You can find TODOs by `grep`ing the root directory
-```
-grep -rnw . -e TODO
-```
