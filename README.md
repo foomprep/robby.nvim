@@ -52,7 +52,6 @@ There are also some helper user commands
 ```
 :AskRobby write your question here (query the model with any question but do not insert code changes, only output to `stdout`)
 :History (view history of `AskRobby` using `less` in the editor.
-:Rewind (syntactic sugar to `git restore .`)
 ```
 ## Fin
 If you like this plugin please consider sharing it :)
