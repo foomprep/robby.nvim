@@ -239,12 +239,12 @@ local function write_string_at_cursor(str)
 end
 
 local function handle_anthropic_spec_data(data_stream, event_state)
-  if event_state == 'content_block_delta' then
-    local json = vim.json.decode(data_stream)
-    if json.delta and json.delta.text then
-      write_string_at_cursor(json.delta.text)
+    if event_state == 'content_block_delta' then
+        local json = vim.json.decode(data_stream)
+        if json.delta and json.delta.text then
+            write_string_at_cursor(json.delta.text)
+        end
     end
-  end
 end
 
 local function parse_and_call(line)
