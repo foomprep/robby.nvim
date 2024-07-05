@@ -342,7 +342,7 @@ end, { nargs = 0 })
 
 vim.api.nvim_create_user_command('StreamCompletion', function(opts)
 	for chunk in streamAnthropicResponse(opts.args) do
-		print(chunk)
+		vim.api.nvim_buf_set_lines(0, -1, -1, false, {chunk})
 	end
 end, { nargs = '*' })
 --------------------------------------------------------------------------
