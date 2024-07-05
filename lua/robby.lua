@@ -1,8 +1,21 @@
 local uv = vim.uv
 local os = require('os')
 
------------- Global variables --------------------------
-local coding_system_message = "You are an AI programming assistant that updates and edits code as specified the user.  The user will give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code.  Return the code displayed in between triple backticks. Do not include examples."
+------------ Global variables ---------------------------
+
+local coding_system_message = [[
+You are an AI programming assistant that generates code as specified the user.  The user will possibly give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code. Be concise. Do not include usage examples. Only return the code as in the following examples
+Examples:
+python```
+for i in range(5):
+	print(i)
+```
+javascript```
+for (let i = 0; i < 5; i++) {
+    console.log(i);
+}
+```
+]]
 
 local help_message = [[Robby [options] [prompt]
 
@@ -13,9 +26,11 @@ options:
 		-q		Ask question, prints to buffer, does not change code
 		--rewind	Rewind all written unstaged changes
 ]]
----
+
+----------------------------------------------------------
 
 ----------------------- Utils ----------------------------
+
 local function table2string(o)
    if type(o) == 'table' then
       local s = '{ '
@@ -40,6 +55,7 @@ local function create_question_message(context, question)
 	return "Question context:\n" ..
 		context .. "\n\n" .. question
 end
+
 ------------------------------------------------------------
 
 --------------------- Buffer Manip -------------------------
@@ -238,12 +254,36 @@ local function write_string_at_cursor(str)
   end)
 end
 
+-- TODO not sure this hack works, is each function guaranteed to be called in the right order?
+-- Need to figure out a way to enfore structed generation
+local s = ""
+local printing = false
+local ticks_index = 0
+local first_tick = true
 local function handle_anthropic_spec_data(data_stream, event_state)
     if event_state == 'content_block_delta' then
         local json = vim.json.decode(data_stream)
         if json.delta and json.delta.text then
-			print("Delta text -> " .. json.delta.text)
-            write_string_at_cursor(json.delta.text)
+			local start, finish = string.find(json.delta.text, "```", ticks_index)
+			if finish then 
+				if first_tick then
+					write_string_at_cursor(string.sub(json.delta.text, finish+1))
+					ticks_index = finish
+					first_tick = false
+					finish = nil
+					printing = true
+				else
+					write_string_at_cursor(string.sub(json.delta.text, 0, finish-4))
+					ticks_index = 0
+					printing = false
+					first_tick = true
+					finish = nil
+				end
+			else
+				if printing then
+					write_string_at_cursor(json.delta.text)
+				end
+			end
         end
     end
 end
@@ -260,7 +300,7 @@ local function parse_and_call(line)
 	end
 end
 
-function streamAnthropicResponse(prompt)
+local function streamAnthropicResponse(prompt)
     local curlCommand = string.format([[
         curl -N -s https://api.anthropic.com/v1/messages 
         -H 'Content-Type: application/json' 
@@ -268,6 +308,7 @@ function streamAnthropicResponse(prompt)
         -H 'anthropic-version: 2023-06-01' 
         --data '{
             "model": "%s",
+			"system": "%s",
             "messages": [{
                 "role": "user",
                 "content": "%s"
@@ -278,6 +319,7 @@ function streamAnthropicResponse(prompt)
     ]],
         os.getenv("ANTHROPIC_API_KEY"),
         os.getenv("ROBBY_MODEL"),
+		coding_system_message,
         prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
     )
     local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
@@ -295,6 +337,8 @@ function streamAnthropicResponse(prompt)
 		on_exit = function(_, exit_code)
 			print("Exited with code " .. exit_code)
 			stop_spinner()
+			s = ""
+			printing = false
 		end
 	})
 end
@@ -356,6 +400,7 @@ end
 ------------------------------------------------------------------------
 
 ----------------------- User Commands -----------------------------------
+
 vim.api.nvim_create_user_command('TellRobby', function(opts)
     if opts.range == 2 then -- Visual Mode
 		local yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
@@ -386,12 +431,15 @@ vim.api.nvim_create_user_command('History', function(opts)
     end
 end, { nargs = 0 })
 
-vim.api.nvim_create_user_command('StreamCompletion', function(opts)
-	streamAnthropicResponse(opts.args)
-end, { nargs = '*' })
+-- TODO comment for now, not working properly
+--vim.api.nvim_create_user_command('StreamCompletion', function(opts)
+--	streamAnthropicResponse(opts.args)
+--end, { nargs = '*' })
+
 --------------------------------------------------------------------------
 
 ----------------------- Key Mappings -------------------------------------
+
 local function generate_code_from_current_line()
     vim.cmd('stopinsert') -- Exit visual/insert mode
     local current_line = vim.fn.getline('.')
