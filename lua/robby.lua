@@ -261,15 +261,29 @@ local function parse_and_call(line)
 end
 
 function streamAnthropicResponse(prompt)
-    local curlCommand = string.format(
-        "curl -N -s https://api.anthropic.com/v1/messages -H 'Content-Type: application/json' -H 'X-API-Key: %s' -H 'anthropic-version: 2023-06-01' --data '{\"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"max_tokens\": 4096, \"stream\": true}'",
+    local curlCommand = string.format([[
+        curl -N -s https://api.anthropic.com/v1/messages 
+        -H 'Content-Type: application/json' 
+        -H 'X-API-Key: %s' 
+        -H 'anthropic-version: 2023-06-01' 
+        --data '{
+            "model": "%s",
+            "messages": [{
+                "role": "user",
+                "content": "%s"
+            }],
+            "max_tokens": 4096,
+            "stream": true
+        }'
+    ]],
         os.getenv("ANTHROPIC_API_KEY"),
         os.getenv("ROBBY_MODEL"),
         prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
     )
+    local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
 
 	start_spinner()
-	local job_id = vim.fn.jobstart({"sh", "-c", curlCommand}, {
+	local job_id = vim.fn.jobstart({"sh", "-c", preparedCurlCommand}, {
 		on_stdout = function(_, data)
 			for _, line in ipairs(data) do
 				parse_and_call(line)
