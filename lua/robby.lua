@@ -221,6 +221,44 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 	return nil
 end
 
+local function write_string_at_cursor(str)
+  vim.schedule(function()
+    local current_window = vim.api.nvim_get_current_win()
+    local cursor_position = vim.api.nvim_win_get_cursor(current_window)
+    local row, col = cursor_position[1], cursor_position[2]
+
+    local lines = vim.split(str, '\n')
+
+    vim.cmd("undojoin")
+    vim.api.nvim_put(lines, 'c', true, true)
+
+    local num_lines = #lines
+    local last_line_length = #lines[num_lines]
+    vim.api.nvim_win_set_cursor(current_window, { row + num_lines - 1, col + last_line_length })
+  end)
+end
+
+local function handle_anthropic_spec_data(data_stream, event_state)
+  if event_state == 'content_block_delta' then
+    local json = vim.json.decode(data_stream)
+    if json.delta and json.delta.text then
+      write_string_at_cursor(json.delta.text)
+    end
+  end
+end
+
+local function parse_and_call(line)
+	local event = string.match(line, "^event:%s*(.+)$")
+	if event then
+	  curr_event_state = event
+	  return
+	end
+	local data_match = string.match(line, '^data: (.+)$')
+	if data_match then
+	  handle_anthropic_spec_data(data_match, curr_event_state)
+	end
+end
+
 function streamAnthropicResponse(prompt)
     local curlCommand = string.format(
         "curl -N -s https://api.anthropic.com/v1/messages -H 'Content-Type: application/json' -H 'X-API-Key: %s' -H 'anthropic-version: 2023-06-01' --data '{\"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"max_tokens\": 4096, \"stream\": true}'",
@@ -229,27 +267,21 @@ function streamAnthropicResponse(prompt)
         prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
     )
 
-    local handle = io.popen(curlCommand)
-
-    return function()
-        local line = handle:read("*l")
-        if not line then
-            handle:close()
-            return nil
-        end
-
-        if line:sub(1, 6) == "data: " then
-            local jsonData = line:sub(7)
-            if jsonData ~= "[DONE]" then
-                local success, parsed = pcall(require("cjson").decode, jsonData)
-                if success and parsed.type == "content_block_delta" then
-                    return parsed.delta.text
-                end
-            end
-        end
-
-        return ""
-    end
+	start_spinner()
+	local job_id = vim.fn.jobstart({"sh", "-c", curlCommand}, {
+		on_stdout = function(_, data)
+			for _, line in ipairs(data) do
+				parse_and_call(line)
+			end
+		end,
+		on_stderr = function(_, data)
+			stop_spinner()
+		end,
+		on_exit = function(_, exit_code)
+			print("Exited with code " .. exit_code)
+			stop_spinner()
+		end
+	})
 end
 
 local function query_model(prompt, system_message, line1, line2, max_tokens)
@@ -257,6 +289,7 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
     
     local cmd = generate_curl_command(prompt, system_message, max_tokens)
 
+	start_spinner()
     local output = ""
     local job_id = vim.fn.jobstart({"sh", "-c", cmd}, {
         on_stdout = function(_, data)
@@ -303,8 +336,6 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
         print("Failed to start job")
     elseif job_id == -1 then
         print("Invalid arguments for jobstart")
-    else
-        start_spinner()
     end
 end
 ------------------------------------------------------------------------
@@ -341,16 +372,7 @@ vim.api.nvim_create_user_command('History', function(opts)
 end, { nargs = 0 })
 
 vim.api.nvim_create_user_command('StreamCompletion', function(opts)
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line, col = cursor[1] - 1, cursor[2]
-
-	for chunk in streamAnthropicResponse(opts.args) do
-		local current_line = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[1] or ""
-		local new_line = current_line:sub(1, col) .. chunk .. current_line:sub(col + 1)
-		vim.api.nvim_buf_set_lines(0, line, line + 1, false, {new_line})
-		col = col + #chunk
-		vim.api.nvim_win_set_cursor(0, {line + 1, col})
-	end
+	streamAnthropicResponse(opts.args)
 end, { nargs = '*' })
 --------------------------------------------------------------------------
 
