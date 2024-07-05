@@ -221,6 +221,37 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 	return nil
 end
 
+function streamAnthropicResponse(prompt)
+    local curlCommand = string.format(
+        "curl -N -s https://api.anthropic.com/v1/messages -H 'Content-Type: application/json' -H 'X-API-Key: %s' -H 'anthropic-version: 2023-06-01' --data '{\"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"max_tokens\": 4096, \"stream\": true}'",
+        os.getenv("ANTHROPIC_API_KEY"),
+        os.getenv("ROBBY_MODEL"),
+        prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
+    )
+
+    local handle = io.popen(curlCommand)
+
+    return function()
+        local line = handle:read("*l")
+        if not line then
+            handle:close()
+            return nil
+        end
+
+        if line:sub(1, 6) == "data: " then
+            local jsonData = line:sub(7)
+            if jsonData ~= "[DONE]" then
+                local success, parsed = pcall(require("cjson").decode, jsonData)
+                if success and parsed.type == "content_block_delta" then
+                    return parsed.delta.text
+                end
+            end
+        end
+
+        return ""
+    end
+end
+
 local function query_model(prompt, system_message, line1, line2, max_tokens)
     max_tokens = max_tokens or 4096  -- Use the provided max_tokens or default to 4096
     
@@ -309,6 +340,11 @@ vim.api.nvim_create_user_command('History', function(opts)
     end
 end, { nargs = 0 })
 
+vim.api.nvim_create_user_command('StreamCompletion', function(opts)
+	for chunk in streamAnthropicResponse(opts.args) do
+		print(chunk)
+	end
+end, { nargs = '*' })
 --------------------------------------------------------------------------
 
 ----------------------- Key Mappings -------------------------------------
