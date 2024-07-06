@@ -1,6 +1,8 @@
 # robby the robot 
 robby is an AI coding assistant for vim that allows for generating code and also making precise changes based on text selection in VISUAL mode.
 
+inspired by [dingllm](https://github.com/yacineMTB/dingllm.nvim/blob/master/README.md), go check it out!
+
 [example.webm](https://github.com/joorjeh/robby/assets/40566439/c342f794-4d41-44f0-80c7-fea495cd15f9)
 
 ## Installation
