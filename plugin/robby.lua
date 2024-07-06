@@ -1,5 +1,5 @@
 local uv = vim.uv
-local os = require('os')
+local os = require("os")
 
 ------------ Global variables ---------------------------
 
@@ -32,87 +32,85 @@ options:
 ----------------------- Utils ----------------------------
 
 local function table2string(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. table2string(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
+	if type(o) == "table" then
+		local s = "{ "
+		for k, v in pairs(o) do
+			if type(k) ~= "number" then
+				k = '"' .. k .. '"'
+			end
+			s = s .. "[" .. k .. "] = " .. table2string(v) .. ","
+		end
+		return s .. "} "
+	else
+		return tostring(o)
+	end
 end
 
 local function create_user_message(context_code, prompt)
-    return "code section:\n" ..
-        context_code .. "\n\n" ..
-        "Changes to be made:\n" ..
-        prompt
+	return "code section:\n" .. context_code .. "\n\n" .. "Changes to be made:\n" .. prompt
 end
 
 local function create_question_message(context, question)
-	return "Question context:\n" ..
-		context .. "\n\n" .. question
+	return "Question context:\n" .. context .. "\n\n" .. question
 end
 
 ------------------------------------------------------------
 
 --------------------- Buffer Manip -------------------------
 local function yank_range_of_lines(start_line, end_line)
-    -- Save the current register setting and cursor position
-    local save_reg = vim.fn.getreg('"')
-    local save_cursor = vim.fn.getpos('.')
-    
-    -- Move to the start line of the range
-    vim.cmd('normal! ' .. start_line .. 'G')
-    
-    -- Enter visual mode and select the range of lines
-    if start_line == end_line then
-        vim.cmd('normal! V')  -- Select only the current line
-    else
-        vim.cmd('normal! V' .. (end_line - start_line) .. 'j')
-    end
-    
-    -- Yank the selected lines into register 'a'
-    vim.cmd('normal! "ay')
-    
-    -- Store the yanked text into a variable
-    local yanked_text = vim.fn.getreg('a')
-    
-    -- Restore the original register setting and cursor position
-    vim.fn.setreg('"', save_reg)
-    vim.fn.setpos('.', save_cursor)
-    
-    -- Return the yanked text
-    return yanked_text
+	-- Save the current register setting and cursor position
+	local save_reg = vim.fn.getreg('"')
+	local save_cursor = vim.fn.getpos(".")
+
+	-- Move to the start line of the range
+	vim.cmd("normal! " .. start_line .. "G")
+
+	-- Enter visual mode and select the range of lines
+	if start_line == end_line then
+		vim.cmd("normal! V") -- Select only the current line
+	else
+		vim.cmd("normal! V" .. (end_line - start_line) .. "j")
+	end
+
+	-- Yank the selected lines into register 'a'
+	vim.cmd('normal! "ay')
+
+	-- Store the yanked text into a variable
+	local yanked_text = vim.fn.getreg("a")
+
+	-- Restore the original register setting and cursor position
+	vim.fn.setreg('"', save_reg)
+	vim.fn.setpos(".", save_cursor)
+
+	-- Return the yanked text
+	return yanked_text
 end
 
 local function replace_lines_in_range(start_line, end_line, new_text)
-    -- Save the current register setting and cursor position
-    local save_reg = vim.fn.getreg('"')
-    local save_cursor = vim.fn.getpos('.')
+	-- Save the current register setting and cursor position
+	local save_reg = vim.fn.getreg('"')
+	local save_cursor = vim.fn.getpos(".")
 
-    -- Move to the start line of the range
-    vim.cmd('normal! ' .. start_line .. 'G')
+	-- Move to the start line of the range
+	vim.cmd("normal! " .. start_line .. "G")
 
-    -- Enter visual mode and select the range of lines
-    vim.cmd('normal! V' .. (end_line - start_line) .. 'j')
+	-- Enter visual mode and select the range of lines
+	vim.cmd("normal! V" .. (end_line - start_line) .. "j")
 
-    -- Yank the selected lines into register 'a'
-    vim.cmd('normal! "ay')
+	-- Yank the selected lines into register 'a'
+	vim.cmd('normal! "ay')
 
-    -- Delete the selected lines
-    vim.cmd(start_line .. ',' .. end_line .. 'd')
+	-- Delete the selected lines
+	vim.cmd(start_line .. "," .. end_line .. "d")
 
-    -- Insert the new text
-    local new_lines = vim.split(new_text, '\n')
-    vim.api.nvim_buf_set_lines(0, start_line - 1, start_line - 1, false, new_lines)
+	-- Insert the new text
+	local new_lines = vim.split(new_text, "\n")
+	vim.api.nvim_buf_set_lines(0, start_line - 1, start_line - 1, false, new_lines)
 
-	vim.cmd('write')
-    -- Restore the original register setting and cursor position 
+	vim.cmd("write")
+	-- Restore the original register setting and cursor position
 	vim.fn.setreg('"', save_reg)
-    vim.fn.setpos('.', save_cursor)
+	vim.fn.setpos(".", save_cursor)
 end
 ----
 
@@ -122,70 +120,74 @@ local spinner_index = 1
 local spinner_timer = nil
 
 local function update_spinner()
-    local mode = vim.api.nvim_get_mode().mode
-    if mode == 'n' then
-        -- In normal mode, echo to the command line
-        vim.api.nvim_echo({{spinner_frames[spinner_index], "Normal"}}, false, {})
-    elseif mode == 'i' then
+	local mode = vim.api.nvim_get_mode().mode
+	if mode == "n" then
+		-- In normal mode, echo to the command line
+		vim.api.nvim_echo({ { spinner_frames[spinner_index], "Normal" } }, false, {})
+	elseif mode == "i" then
 		-- TODO this doesn't seem to work, investigate
 		vim.fn.setcmdline(spinner_frames[spinner_index])
-    end
-    spinner_index = (spinner_index % #spinner_frames) + 1
+	end
+	spinner_index = (spinner_index % #spinner_frames) + 1
 end
 
 local function start_spinner()
-    if spinner_timer then
-        return
-    end
-    spinner_timer = uv.new_timer()
-    spinner_timer:start(0, 100, vim.schedule_wrap(function()
-        update_spinner()
-    end))
+	if spinner_timer then
+		return
+	end
+	spinner_timer = uv.new_timer()
+	spinner_timer:start(
+		0,
+		100,
+		vim.schedule_wrap(function()
+			update_spinner()
+		end)
+	)
 end
 
 local function stop_spinner()
-    if spinner_timer then
-        spinner_timer:stop()
-        spinner_timer:close()
-        spinner_timer = nil
-        vim.api.nvim_echo({{"", "Fetched"}}, false, {})
-    end
+	if spinner_timer then
+		spinner_timer:stop()
+		spinner_timer:close()
+		spinner_timer = nil
+		vim.api.nvim_echo({ { "", "Fetched" } }, false, {})
+	end
 end
 -------------------------------------------------------------
 
 ---------------- Model Stuffs -------------------------------
 local function extract_code_block(text)
-    -- Split the input text into lines
-    local lines = vim.split(text, "\n")
-    -- Initialize variables
-    local start_line = 0
-    local end_line = #lines
-    local found_start = false
+	-- Split the input text into lines
+	local lines = vim.split(text, "\n")
+	-- Initialize variables
+	local start_line = 0
+	local end_line = #lines
+	local found_start = false
 
-    -- Loop through lines to find the start and end of the code block
-    for i, line in ipairs(lines) do
-        if not found_start then
-            -- Check for the start of the code block
-            if line:match('```') then
-                found_start = true
-                start_line = i + 1
-            end
-        else
-            -- Check for the end of the code block
-            if line:match('```') then
-                end_line = i - 1
-                break
-            end
-        end
-    end
+	-- Loop through lines to find the start and end of the code block
+	for i, line in ipairs(lines) do
+		if not found_start then
+			-- Check for the start of the code block
+			if line:match("```") then
+				found_start = true
+				start_line = i + 1
+			end
+		else
+			-- Check for the end of the code block
+			if line:match("```") then
+				end_line = i - 1
+				break
+			end
+		end
+	end
 
-    -- Return the extracted code block as a string
-    if found_start and start_line <= end_line then
-        local code_block = table.concat(lines, "\n", start_line, end_line)
-        return code_block
-    else
-        return ""
-    end
+	-- Return the extracted code block as a string
+	if found_start and start_line <= end_line then
+		local code_block = table.concat(lines, "\n", start_line, end_line)
+		return code_block
+	else
+		return ""
+	end
 end
 
 -- TODO generalize this so that depending on model used the cmd variable changes
@@ -202,15 +204,15 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			max_tokens = max_tokens,
 			system = system_message,
 			messages = {
-				{ role = "user", content = prompt }
-			}
+				{ role = "user", content = prompt },
+			},
 		})
 		return string.format(
-			"curl -s -X POST 'https://api.anthropic.com/v1/messages' " ..
-			"-H 'Content-Type: application/json' " ..
-			"-H 'X-API-Key: %s' " ..
-			"-H 'anthropic-version: 2023-06-01' " ..
-			"--data '%s'",
+			"curl -s -X POST 'https://api.anthropic.com/v1/messages' "
+				.. "-H 'Content-Type: application/json' "
+				.. "-H 'X-API-Key: %s' "
+				.. "-H 'anthropic-version: 2023-06-01' "
+				.. "--data '%s'",
 			api_key,
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
 		)
@@ -221,14 +223,14 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			max_tokens = max_tokens,
 			messages = {
 				{ role = "system", content = system_message },
-				{ role = "user", content = prompt }
-			}
+				{ role = "user", content = prompt },
+			},
 		})
 		return string.format(
-			"curl -s -X POST 'https://api.openai.com/v1/chat/completions' " ..
-			"-H 'Content-Type: application/json' " ..
-			"-H 'Authorization: Bearer %s' " ..
-			"--data '%s'",
+			"curl -s -X POST 'https://api.openai.com/v1/chat/completions' "
+				.. "-H 'Content-Type: application/json' "
+				.. "-H 'Authorization: Bearer %s' "
+				.. "--data '%s'",
 			api_key,
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
 		)
@@ -238,20 +240,20 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 end
 
 local function write_string_at_cursor(str)
-  vim.schedule(function()
-    local current_window = vim.api.nvim_get_current_win()
-    local cursor_position = vim.api.nvim_win_get_cursor(current_window)
-    local row, col = cursor_position[1], cursor_position[2]
+	vim.schedule(function()
+		local current_window = vim.api.nvim_get_current_win()
+		local cursor_position = vim.api.nvim_win_get_cursor(current_window)
+		local row, col = cursor_position[1], cursor_position[2]
 
-    local lines = vim.split(str, '\n')
+		local lines = vim.split(str, "\n")
 
-    vim.cmd("undojoin")
-    vim.api.nvim_put(lines, 'c', true, true)
+		vim.cmd("undojoin")
+		vim.api.nvim_put(lines, "c", true, true)
 
-    local num_lines = #lines
-    local last_line_length = #lines[num_lines]
-    vim.api.nvim_win_set_cursor(current_window, { row + num_lines - 1, col + last_line_length })
-  end)
+		local num_lines = #lines
+		local last_line_length = #lines[num_lines]
+		vim.api.nvim_win_set_cursor(current_window, { row + num_lines - 1, col + last_line_length })
+	end)
 end
 
 -- TODO not sure this hack works, is each function guaranteed to be called in the right order?
@@ -261,19 +263,19 @@ local printing = false
 local ticks_index = 0
 local first_tick = true
 local function handle_anthropic_spec_data(data_stream, event_state)
-    if event_state == 'content_block_delta' then
-        local json = vim.json.decode(data_stream)
-        if json.delta and json.delta.text then
+	if event_state == "content_block_delta" then
+		local json = vim.json.decode(data_stream)
+		if json.delta and json.delta.text then
 			local start, finish = string.find(json.delta.text, "```", ticks_index)
-			if finish then 
+			if finish then
 				if first_tick then
-					write_string_at_cursor(string.sub(json.delta.text, finish+1))
+					write_string_at_cursor(string.sub(json.delta.text, finish + 1))
 					ticks_index = finish
 					first_tick = false
 					finish = nil
 					printing = true
 				else
-					write_string_at_cursor(string.sub(json.delta.text, 0, finish-4))
+					write_string_at_cursor(string.sub(json.delta.text, 0, finish - 4))
 					ticks_index = 0
 					printing = false
 					first_tick = true
@@ -284,24 +286,25 @@ local function handle_anthropic_spec_data(data_stream, event_state)
 					write_string_at_cursor(json.delta.text)
 				end
 			end
-        end
-    end
+		end
+	end
 end
 
 local function parse_and_call(line)
 	local event = string.match(line, "^event:%s*(.+)$")
 	if event then
-	  curr_event_state = event
-	  return
+		curr_event_state = event
+		return
 	end
-	local data_match = string.match(line, '^data: (.+)$')
+	local data_match = string.match(line, "^data: (.+)$")
 	if data_match then
-	  handle_anthropic_spec_data(data_match, curr_event_state)
+		handle_anthropic_spec_data(data_match, curr_event_state)
 	end
 end
 
 local function streamAnthropicResponse(prompt)
-    local curlCommand = string.format([[
+	local curlCommand = string.format(
+		[[
         curl -N -s https://api.anthropic.com/v1/messages 
         -H 'Content-Type: application/json' 
         -H 'X-API-Key: %s' 
@@ -317,15 +320,15 @@ local function streamAnthropicResponse(prompt)
             "stream": true
         }'
     ]],
-        os.getenv("ANTHROPIC_API_KEY"),
-        os.getenv("ROBBY_MODEL"),
+		os.getenv("ANTHROPIC_API_KEY"),
+		os.getenv("ROBBY_MODEL"),
 		coding_system_message,
-        prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
-    )
-    local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
+		prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
+	)
+	local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
 
 	start_spinner()
-	local job_id = vim.fn.jobstart({"sh", "-c", preparedCurlCommand}, {
+	local job_id = vim.fn.jobstart({ "sh", "-c", preparedCurlCommand }, {
 		on_stdout = function(_, data)
 			for _, line in ipairs(data) do
 				parse_and_call(line)
@@ -339,96 +342,90 @@ local function streamAnthropicResponse(prompt)
 			stop_spinner()
 			s = ""
 			printing = false
-		end
+		end,
 	})
 end
 
 local function query_model(prompt, system_message, line1, line2, max_tokens)
-    max_tokens = max_tokens or 4096  -- Use the provided max_tokens or default to 4096
-    
-    local cmd = generate_curl_command(prompt, system_message, max_tokens)
+	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
+
+	local cmd = generate_curl_command(prompt, system_message, max_tokens)
 
 	start_spinner()
-    local output = ""
-    local job_id = vim.fn.jobstart({"sh", "-c", cmd}, {
-        on_stdout = function(_, data)
-            for _, line in ipairs(data) do
-                if line ~= "" then
-                    output = output .. line
-                end
-            end
-        end,
-        on_stderr = function(_, data)
-            -- Handle stderr data here
+	local output = ""
+	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
+		on_stdout = function(_, data)
+			for _, line in ipairs(data) do
+				if line ~= "" then
+					output = output .. line
+				end
+			end
+		end,
+		on_stderr = function(_, data)
+			-- Handle stderr data here
 			stop_spinner()
-            print("Stderr:", vim.inspect(data))
-        end,
-        on_exit = function(_, exit_code)
-            -- Handle job exit here
-            print("Job exited with code:", exit_code)
-            local success, result = pcall(vim.fn.json_decode, output)
-            if success then
+			print("Stderr:", vim.inspect(data))
+		end,
+		on_exit = function(_, exit_code)
+			-- Handle job exit here
+			print("Job exited with code:", exit_code)
+			local success, result = pcall(vim.fn.json_decode, output)
+			if success then
 				print(table2string(result))
 				local response = result.content[1].text
 				if #system_message > 0 then
 					local code_change = extract_code_block(response)
 					replace_lines_in_range(line1, line2, code_change)
 				else
-					vim.api.nvim_echo({{response, "Normal"}}, false, {})
+					vim.api.nvim_echo({ { response, "Normal" } }, false, {})
 
 					local file = io.open(".chat_history", "a")
 					if file then
 						file:write(response .. "\n")
 						file:close()
 					else
-						vim.api.nvim_echo({{" Failed to write to .chat_history", "ErrorMsg"}}, false, {})
+						vim.api.nvim_echo({ { " Failed to write to .chat_history", "ErrorMsg" } }, false, {})
 					end
 				end
-            else
-                print("Error decoding JSON: " .. tostring(result))
-            end
-            stop_spinner()
-        end
-    })
+			else
+				print("Error decoding JSON: " .. tostring(result))
+			end
+			stop_spinner()
+		end,
+	})
 
-    if job_id == 0 then
-        print("Failed to start job")
-    elseif job_id == -1 then
-        print("Invalid arguments for jobstart")
-    end
+	if job_id == 0 then
+		print("Failed to start job")
+	elseif job_id == -1 then
+		print("Invalid arguments for jobstart")
+	end
 end
 ------------------------------------------------------------------------
 
 ----------------------- User Commands -----------------------------------
 
-vim.api.nvim_create_user_command('TellRobby', function(opts)
-    if opts.range == 2 then -- Visual Mode
+vim.api.nvim_create_user_command("TellRobby", function(opts)
+	if opts.range == 2 then -- Visual Mode
 		local yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
 		local user_message = create_user_message(yanked_lines, opts.args)
-        query_model(user_message, coding_system_message, opts.line1, opts.line2)
-    end
-end, {nargs = '*', range = true})
+		query_model(user_message, coding_system_message, opts.line1, opts.line2)
+	end
+end, { nargs = "*", range = true })
 
-vim.api.nvim_create_user_command('AskRobby', function(opts)
+vim.api.nvim_create_user_command("AskRobby", function(opts)
 	local yanked_lines = opts.range == 2 and yank_range_of_lines(opts.line1, opts.line2) or ""
 	local user_message = create_question_message(yanked_lines, opts.args)
 	query_model(user_message, "", opts.line1, opts.line2)
-end, {nargs = '*', range = true})
+end, { nargs = "*", range = true })
 
-vim.api.nvim_create_user_command('Rewind', function(opts)
-    vim.fn.system("git restore .")
-    vim.cmd('redraw!')
-end, {nargs = 0})
+--vim.api.nvim_create_user_command("Rewind", function(opts)
+--	vim.fn.system("git restore .")
+--	vim.cmd("redraw!")
+--end, { nargs = 0 })
 
-vim.api.nvim_create_user_command('History', function(opts)
-    local file = io.open(".chat_history", "r")
-    if file then
-        local content = file:read("*all")
-        file:close()
-        print(content)
-    else
-        print("Error: Unable to open .chat_history file")
-    end
+vim.api.nvim_create_user_command("History", function(opts)
+	vim.cmd("terminal less +G .chat_history")
+	vim.cmd("startinsert")
 end, { nargs = 0 })
 
 -- TODO comment for now, not working properly
@@ -441,19 +438,17 @@ end, { nargs = 0 })
 ----------------------- Key Mappings -------------------------------------
 
 local function generate_code_from_current_line()
-    vim.cmd('stopinsert') -- Exit visual/insert mode
-    local current_line = vim.fn.getline('.')
-    local line_num = vim.api.nvim_win_get_cursor(0)[1]
-    -- Escape any quotes in the current line to avoid breaking the command
-    current_line = current_line:gsub('"', '\\"')
-    local user_message = create_user_message("", current_line)
-    query_model(user_message, coding_system_message, line_num, line_num)
+	vim.cmd("stopinsert") -- Exit visual/insert mode
+	local current_line = vim.fn.getline(".")
+	local line_num = vim.api.nvim_win_get_cursor(0)[1]
+	-- Escape any quotes in the current line to avoid breaking the command
+	current_line = current_line:gsub('"', '\\"')
+	local user_message = create_user_message("", current_line)
+	query_model(user_message, coding_system_message, line_num, line_num)
 end
 
-vim.keymap.set({'i', 'v', 'n'}, '#;', function()
-    generate_code_from_current_line()    
+vim.keymap.set({ "i", "v", "n" }, "#;", function()
+	generate_code_from_current_line()
 end, { desc = "Generate code from current line" })
 
 --------------------------------------------------------------------------
-
-
