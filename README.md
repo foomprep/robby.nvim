@@ -1,7 +1,5 @@
 # robby the robot (an AI coding assistant for nvim)
 
-![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
-
 ## Installation
 To install, either download directly into `nvim` config
 ```
@@ -70,3 +68,4 @@ There are also some helper user commands
 ## Fin
 If you like this plugin please consider sharing it :)
 
+![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
