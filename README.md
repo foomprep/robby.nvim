@@ -1,4 +1,5 @@
-# robby the robot (an AI coding assistant for nvim)
+# robby the robot 
+robby is an AI coding assistant for vim that allows for generating code and also making precise changes based on text selection in VISUAL mode.
 
 ## Installation
 To install, either download directly into `nvim` config
