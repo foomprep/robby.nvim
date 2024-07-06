@@ -1,32 +1,22 @@
 # robby the robot 
 robby is an AI coding assistant for vim that allows for generating code and also making precise changes based on text selection in VISUAL mode.
 
-inspired by [dingllm](https://github.com/yacineMTB/dingllm.nvim/blob/master/README.md), go check it out!
+inspired by [dingllm](https://github.com/yacineMTB/dingllm.nvim/blob/master/README.md), check it out!
 
 [example.webm](https://github.com/joorjeh/robby/assets/40566439/c342f794-4d41-44f0-80c7-fea495cd15f9)
 
 ## Installation
-To install, either download directly into `nvim` config
+If using `lazy.nvim` requires no config and can be added to lazy simply by creating file in `plugin` folder`
+```
+return {
+    "joorjeh/robby"
+}
+```
+You can also install by directly downloading
 ```
 mkdir -p ~/.config/nvim/plugin && cd ~/.config/nvim/plugin
 git clone https://github.com/joorjeh/robby.git
 ```
-or you can use `vim-plug`.  Your `init.vim` would look like this
-```
-call plug#begin()
-
-Plug 'joorjeh/robby'
-// Possibly other packages
-
-call plug#end()
-
-lua << EOF
-require('robby')
-EOF
-```
-This plugin is not configured to work with `lazy.nvim`.  Personally I spent a few hours trying to setup `lazy` and
-it just doesn't seem worth it.  You can always download directly per above if package managers don't work.
-
 The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, set the environment variable
 `ROBBY_MODEL` with your model of choice.  For example, to use Anthropic's current Sonnet model:
 ```
