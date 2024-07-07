@@ -3,7 +3,7 @@ robby is an AI coding assistant for neovim that allows for generating code and a
 
 inspired by [dingllm](https://github.com/yacineMTB/dingllm.nvim/blob/master/README.md), check it out!
 
-[example.webm](https://github.com/joorjeh/robby/assets/40566439/c342f794-4d41-44f0-80c7-fea495cd15f9)
+[robby.webm](https://github.com/joorjeh/robby/assets/40566439/84a18c65-fe8c-42d0-b596-5c5d29fba9ec)
 
 ## Installation
 If using `lazy.nvim` requires no config and can be added to lazy simply by creating file in `plugin` folder`
