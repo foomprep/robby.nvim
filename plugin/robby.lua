@@ -1,6 +1,6 @@
 local uv = vim.uv
 local os = require("os")
-
+local JSON = require("JSON")
 ------------ Global variables ---------------------------
 
 local coding_system_message = [[
@@ -234,6 +234,22 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			api_key,
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
 		)
+	elseif string.match(model, "llama3") then -- Ollama
+		local body = vim.json.encode({
+			model = model,
+			max_tokens = max_tokens,
+			messages = {
+				{ role = "system", content = system_message },
+				{ role = "user", content = prompt },
+			},
+			stream = false,
+		})
+		return string.format(
+			"curl -s -X POST 'http://localhost:11434/api/chat' "
+				.. "-H 'Content-Type: application/json' "
+				.. "--data '%s'",
+			body:gsub("'", "'\\''") -- Escape single quotes in the body
+		)
 	end
 
 	return nil
@@ -303,13 +319,14 @@ local function parse_and_call(line)
 end
 
 local function parse_response_by_model(result)
-	print("Result " .. table2string(result))
 	local model = os.getenv("ROBBY_MODEL")
 	if model then
 		if string.match(model, "claude") then
 			return result.content[1].text
 		elseif string.match(model, "gpt") then
 			return result.choices[1].message.content
+		elseif string.match(model, "llama") then
+			return result.message.content
 		else
 			return nil
 		end
@@ -386,29 +403,25 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 		on_exit = function(_, exit_code)
 			-- Handle job exit here
 			print("Job exited with code:", exit_code)
-			local success, result = pcall(vim.fn.json_decode, output)
-			if success then
-				local response = parse_response_by_model(result)
-				if not response then
-					vim.api.nvim_echo({ { "ROBBY_MODEL env var not set correctly", "ErrorMsg" } }, false, {})
-					return
-				end
-				if #system_message > 0 then
-					local code_change = extract_code_block(response)
-					replace_lines_in_range(line1, line2, code_change)
-				else
-					vim.api.nvim_echo({ { response, "Normal" } }, false, {})
-
-					local file = io.open(".chat_history", "a")
-					if file then
-						file:write(response .. "\n")
-						file:close()
-					else
-						vim.api.nvim_echo({ { " Failed to write to .chat_history", "ErrorMsg" } }, false, {})
-					end
-				end
+			local decoded = JSON:decode(output)
+			local response = parse_response_by_model(decoded)
+			if not response then
+				vim.api.nvim_echo({ { "ROBBY_MODEL env var not set correctly", "ErrorMsg" } }, false, {})
+				return
+			end
+			if #system_message > 0 then
+				local code_change = extract_code_block(response)
+				replace_lines_in_range(line1, line2, code_change)
 			else
-				print("Error decoding JSON: " .. tostring(result))
+				vim.api.nvim_echo({ { response, "Normal" } }, false, {})
+
+				local file = io.open(".chat_history", "a")
+				if file then
+					file:write(response .. "\n")
+					file:close()
+				else
+					vim.api.nvim_echo({ { " Failed to write to .chat_history", "ErrorMsg" } }, false, {})
+				end
 			end
 			stop_spinner()
 		end,
