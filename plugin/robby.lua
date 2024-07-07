@@ -302,49 +302,66 @@ local function parse_and_call(line)
 	end
 end
 
-local function streamAnthropicResponse(prompt)
-	local curlCommand = string.format(
-		[[
-        curl -N -s https://api.anthropic.com/v1/messages 
-        -H 'Content-Type: application/json' 
-        -H 'X-API-Key: %s' 
-        -H 'anthropic-version: 2023-06-01' 
-        --data '{
-            "model": "%s",
-			"system": "%s",
-            "messages": [{
-                "role": "user",
-                "content": "%s"
-            }],
-            "max_tokens": 4096,
-            "stream": true
-        }'
-    ]],
-		os.getenv("ANTHROPIC_API_KEY"),
-		os.getenv("ROBBY_MODEL"),
-		coding_system_message,
-		prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
-	)
-	local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
-
-	start_spinner()
-	local job_id = vim.fn.jobstart({ "sh", "-c", preparedCurlCommand }, {
-		on_stdout = function(_, data)
-			for _, line in ipairs(data) do
-				parse_and_call(line)
-			end
-		end,
-		on_stderr = function(_, data)
-			stop_spinner()
-		end,
-		on_exit = function(_, exit_code)
-			print("Exited with code " .. exit_code)
-			stop_spinner()
-			s = ""
-			printing = false
-		end,
-	})
+local function parse_response_by_model(result)
+	print("Result " .. table2string(result))
+	local model = os.getenv("ROBBY_MODEL")
+	if model then
+		if string.match(model, "claude") then
+			return result.content[1].text
+		elseif string.match(model, "gpt") then
+			return result.choices[1].message.content
+		else
+			return nil
+		end
+	else
+		return nil
+	end
 end
+
+-- TODO currently not working
+--local function streamAnthropicResponse(prompt)
+--	local curlCommand = string.format(
+--		[[
+--        curl -N -s https://api.anthropic.com/v1/messages
+--        -H 'Content-Type: application/json'
+--        -H 'X-API-Key: %s'
+--        -H 'anthropic-version: 2023-06-01'
+--        --data '{
+--            "model": "%s",
+--			"system": "%s",
+--            "messages": [{
+--                "role": "user",
+--                "content": "%s"
+--            }],
+--            "max_tokens": 4096,
+--            "stream": true
+--        }'
+--    ]],
+--		os.getenv("ANTHROPIC_API_KEY"),      t
+--		os.getenv("ROBBY_MODEL"),
+--		coding_system_message,
+--		prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
+--	)
+--	local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
+--
+--	start_spinner()
+--	local job_id = vim.fn.jobstart({ "sh", "-c", preparedCurlCommand }, {
+--		on_stdout = function(_, data)
+--			for _, line in ipairs(data) do
+--				parse_and_call(line)
+--			end
+--		end,
+--		on_stderr = function(_, data)
+--			stop_spinner()
+--		end,
+--		on_exit = function(_, exit_code)
+--			print("Exited with code " .. exit_code)
+--			stop_spinner()
+--			s = ""
+--			printing = false
+--		end,
+--	})                                   l
+--end
 
 local function query_model(prompt, system_message, line1, line2, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
@@ -371,8 +388,11 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 			print("Job exited with code:", exit_code)
 			local success, result = pcall(vim.fn.json_decode, output)
 			if success then
-				print(table2string(result))
-				local response = result.content[1].text
+				local response = parse_response_by_model(result)
+				if not response then
+					vim.api.nvim_echo({ { "ROBBY_MODEL env var not set correctly", "ErrorMsg" } }, false, {})
+					return
+				end
 				if #system_message > 0 then
 					local code_change = extract_code_block(response)
 					replace_lines_in_range(line1, line2, code_change)
