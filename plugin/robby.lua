@@ -199,7 +199,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 
 	if string.match(model, "claude") then -- Anthropic
 		local api_key = os.getenv("ANTHROPIC_API_KEY")
-		local body = vim.json.encode({
+		local body = JSON:encode({
 			model = model,
 			max_tokens = max_tokens,
 			system = system_message,
@@ -218,7 +218,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 		)
 	elseif string.match(model, "gpt") then -- OpenAI
 		local api_key = os.getenv("OPENAI_API_KEY")
-		local body = vim.json.encode({
+		local body = JSON:encode({
 			model = model,
 			max_tokens = max_tokens,
 			messages = {
@@ -236,7 +236,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 		)
 	elseif string.match(model, "ollama") then -- Ollama
 		local ollama_model = string.sub(model, 8)
-		local body = vim.json.encode({
+		local body = JSON:encode({
 			model = ollama_model,
 			max_tokens = max_tokens,
 			messages = {
@@ -281,7 +281,7 @@ local ticks_index = 0
 local first_tick = true
 local function handle_anthropic_spec_data(data_stream, event_state)
 	if event_state == "content_block_delta" then
-		local json = vim.json.decode(data_stream)
+		local json = JSON:decode(data_stream)
 		if json.delta and json.delta.text then
 			local start, finish = string.find(json.delta.text, "```", ticks_index)
 			if finish then
