@@ -17,16 +17,17 @@ You can also install by directly downloading
 mkdir -p ~/.config/nvim/plugin && cd ~/.config/nvim/plugin
 git clone https://github.com/joorjeh/robby.git
 ```
-The plugin currently only supports Anthropic or OpenAI APIs.  To specify which, set the environment variable
-`ROBBY_MODEL` with your model of choice.  For example, to use Anthropic's current Sonnet model:
+The plugin currently supports text models from Anthropic, OpenAI and ollama.  To specify which, set the environment variable
+`ROBBY_MODEL` with your model of choice.  For Anthropic or OpenAI use the model name as is
 ```
 export ROBBY_MODEL=claude-3-5-sonnet-20240620
-```
-or OpenAI's new model
-```
 export ROBBY_MODEL=gpt-4o
 ```
 Relevant api keys should be in the environment for the platform used, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+For models hosted locally through `ollama`, prepend the model name by `ollama_` as in 
+```
+export ROBBY_MODEL=ollama_llama3
+```
 
 > **⚠️ WARNING**
 > This plugin generates code and writes directly to the current file, sometimes editing and rewriting the entire file. Make sure that you are using `git` and there are no uncommitted changes.  It's important that you are able to restore all the changes made by robby or you may lose large portions of your work forever. 

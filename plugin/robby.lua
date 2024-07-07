@@ -234,9 +234,10 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			api_key,
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
 		)
-	elseif string.match(model, "llama3") then -- Ollama
+	elseif string.match(model, "ollama") then -- Ollama
+		local ollama_model = string.sub(model, 8)
 		local body = vim.json.encode({
-			model = model,
+			model = ollama_model,
 			max_tokens = max_tokens,
 			messages = {
 				{ role = "system", content = system_message },
@@ -325,7 +326,7 @@ local function parse_response_by_model(result)
 			return result.content[1].text
 		elseif string.match(model, "gpt") then
 			return result.choices[1].message.content
-		elseif string.match(model, "llama") then
+		elseif string.match(model, "ollama") then
 			return result.message.content
 		else
 			return nil
