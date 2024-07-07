@@ -1,29 +1,40 @@
 #!/bin/bash
 
 generate_completion() {
-    local prompt="$1"
-    local api_key="$ANTHROPIC_API_KEY"
-    local model="$ROBBY_MODEL"
+  local prompt=""
+  for arg in "$@"; do
+    prompt+="$arg "
+  done
+  prompt=${prompt% } # Remove trailing space
 
+  local api_key="$ANTHROPIC_API_KEY"
+  local model="$ROBBY_MODEL"
+
+  local output=$(
     curl -s -X POST https://api.anthropic.com/v1/messages \
-        -H "Content-Type: application/json" \
-        -H "X-API-Key: $api_key" \
-        -H "anthropic-version: 2023-06-01" \
-        -d '{
-            "model": "'"$model"'",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "'"$prompt"'"
-                }
-            ],
-            "max_tokens": 1000
+      -H "Content-Type: application/json" \
+      -H "X-API-Key: $api_key" \
+      -H "anthropic-version: 2023-06-01" \
+      -d '{
+          "model": "'"$model"'",
+          "messages": [
+              {
+                  "role": "user",
+                  "content": "'"$prompt"'"
+              }
+          ],
+          "max_tokens": 1000
         }'
+  )
+  echo "$output"
 }
 
-robby() {
-    local curl_output=$(generate_completion "$1")
-    echo "$curl_output" | jq -r '.content[0].text'
+main() {
+  local curl_output=$(generate_completion "$@")
+  echo "$curl_output" | jq -r '.content[0].text'
 }
 
+main "$@"
+
+# main $1
 # TODO implement for streaming
