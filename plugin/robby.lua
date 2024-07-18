@@ -1,6 +1,7 @@
 local uv = vim.uv
 local os = require("os")
 local JSON = require("JSON")
+
 ------------ Global variables ---------------------------
 
 local coding_system_message = [[
@@ -481,6 +482,7 @@ local function generate_code_from_current_line()
 	query_model(user_message, coding_system_message, line_num, line_num)
 end
 
+-- TODO rewrite this so that it checks the type of the current file and uses comments in that language
 --vim.keymap.set({ "i", "v", "n" }, "#;", function()
 --	generate_code_from_current_line()
 --end, { desc = "Generate code from current line" })
