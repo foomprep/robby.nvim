@@ -481,8 +481,8 @@ local function generate_code_from_current_line()
 	query_model(user_message, coding_system_message, line_num, line_num)
 end
 
-vim.keymap.set({ "i", "v", "n" }, "#;", function()
-	generate_code_from_current_line()
-end, { desc = "Generate code from current line" })
+--vim.keymap.set({ "i", "v", "n" }, "#;", function()
+--	generate_code_from_current_line()
+--end, { desc = "Generate code from current line" })
 
 --------------------------------------------------------------------------

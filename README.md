@@ -37,14 +37,7 @@ Open new file
 ```
 touch test & nvim test 
 ```
-To generate code from scratch (without any context) there are two options, first you can generate code inline using the key
-mapping `#;` on a line with the prompt.  For example,
-```
-Generate a function to find all primes up to n #;
-```
-when you type in `#;` at the end in INSERT mode it will disappear and the plugin will generate code based on the text of the line
-and then inject that code at the same line, replacing it.  The other way to generate from scratch is the user command `TellRobby`.
-It only works in VISUAL mode, but if you go to an empty line and enter VISUAL MODE without selecting text, then run 
+To generate code from scratch (without any context) you can use the `TellRobby` command.  It only works in VISUAL mode, but if you go to an empty line and enter VISUAL MODE without selecting text, then run 
 ```
 :'<,'>TellRobby write your prompt here
 ```
