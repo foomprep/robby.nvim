@@ -453,20 +453,15 @@ vim.api.nvim_create_user_command("AskRobby", function(opts)
 	query_model(user_message, "", opts.line1, opts.line2)
 end, { nargs = "*", range = true })
 
---vim.api.nvim_create_user_command("Rewind", function(opts)
---	vim.fn.system("git restore .")
---	vim.cmd("redraw!")
---end, { nargs = 0 })
+vim.api.nvim_create_user_command("Rewind", function(opts)
+	vim.fn.system("git restore .")
+	vim.cmd("redraw!")
+end, { nargs = 0 })
 
 vim.api.nvim_create_user_command("History", function(opts)
 	vim.cmd("terminal less +G .chat_history")
 	vim.cmd("startinsert")
 end, { nargs = 0 })
-
--- TODO comment for now, not working properly
---vim.api.nvim_create_user_command('StreamCompletion', function(opts)
---	streamAnthropicResponse(opts.args)
---end, { nargs = '*' })
 
 --------------------------------------------------------------------------
 
