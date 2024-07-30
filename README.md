@@ -55,6 +55,4 @@ There are also some helper user commands
 :History (view history of `AskRobby` using `less` in the editor.
 ```
 ## Fin
-If you like this plugin please consider sharing it :)
-
 ![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
