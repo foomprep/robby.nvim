@@ -7,7 +7,7 @@ robby is an AI coding assistant for neovim that allows for generating code and a
 If using `lazy.nvim` requires no config and can be added to lazy simply by creating file in `plugin` folder`
 ```
 return {
-    "joorjeh/robby"
+    "joorjeh/robby.nvim"
 }
 ```
 You can also install by directly downloading
