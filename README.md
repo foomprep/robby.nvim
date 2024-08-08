@@ -1,8 +1,6 @@
 # robby
 robby is an AI coding assistant for neovim that allows for generating code and also making precise changes based on text selection in VISUAL mode.
 
-inspired by [dingllm](https://github.com/yacineMTB/dingllm.nvim/blob/master/README.md), check it out!
-
 [robby.webm](https://github.com/joorjeh/robby/assets/40566439/84a18c65-fe8c-42d0-b596-5c5d29fba9ec)
 
 ## Installation
