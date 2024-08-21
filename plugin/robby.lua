@@ -340,12 +340,23 @@ local function parse_response_by_model(result)
 	end
 end
 
+local function reset_cursor_to_leftmost_column()
+	-- Get the current window and cursor position
+	local current_window = vim.api.nvim_get_current_win()
+	local cursor_position = vim.api.nvim_win_get_cursor(current_window)
+
+	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
+	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
+end
+
 local function query_model(prompt, system_message, line1, line2, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
+	start_spinner()
 
 	local cmd = generate_curl_command(prompt, system_message, max_tokens)
+	vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, {})
+	reset_cursor_to_leftmost_column()
 
-	start_spinner()
 	local output = ""
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
