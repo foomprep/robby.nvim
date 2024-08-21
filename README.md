@@ -2,7 +2,7 @@
 robby is a Lazy plugin for GenAI assisted coding in Neovim.
 
 ## Installation
-Add the following file to Neovim config (usually 
+Add the following plugin file to Neovim config
 ```robby.lua
 return {
     "joorjeh/robby",
