@@ -6,17 +6,14 @@ local cjson = require("cjson")
 ------------ Global variables ---------------------------
 
 local coding_system_message = [[
-You are an AI programming assistant that generates code as specified the user.  The user will possibly give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code. Be concise. Do not include usage examples. Only return the code as in the following examples
-Examples:
-python```
-for i in range(5):
-	print(i)
+You are an AI programming assistant that generates code as specified the user.  The user will possibly give you a code section and tell you how it needs to be updated or added to, along with additional context. Maintain all identations in the code. Be concise. Do not include usage examples. Only return the updated code in between triple backticks as in
+
 ```
-javascript```
-for (let i = 0; i < 5; i++) {
-    console.log(i);
-}
+updated code
 ```
+
+If there is no code section given by the user then simply generate code as specified by the user and return that
+generated code between triple backticks.
 ]]
 
 local help_message = [[Robby [options] [prompt]
@@ -323,18 +320,16 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 					if success then
 						local partialMessage = result_or_error.choices[1].delta.content
 						tickCount = tickCount + countBackticks(partialMessage)
-						if tickCount >= 3 then
-							tickCount = 0
+						if tickCount == 3 then
 							if firstBackTick then
 								break
 							else
-								write_string_at_cursor(get_last_split(partialMessage))
 								firstBackTick = true
+								tickCount = 0
+								write_string_at_cursor(get_last_split(partialMessage))
 							end
-						else
-							if firstBackTick then
-								write_string_at_cursor(partialMessage)
-							end
+						elseif firstBackTick then
+							write_string_at_cursor(partialMessage)
 						end
 					end
 				end
