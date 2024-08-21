@@ -1,4 +1,4 @@
-# robby
+# robby.nvim
 robby is a Lazy plugin for GenAI assisted coding in Neovim.
 
 ## Installation
