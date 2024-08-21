@@ -277,69 +277,6 @@ local function write_string_at_cursor(str)
 	end)
 end
 
--- TODO not sure this hack works, is each function guaranteed to be called in the right order?
--- Need to figure out a way to enfore structed generation
-local s = ""
-local printing = false
-local ticks_index = 0
-local first_tick = true
-local function handle_anthropic_spec_data(data_stream, event_state)
-	if event_state == "content_block_delta" then
-		local json = JSON:decode(data_stream)
-		if json.delta and json.delta.text then
-			local start, finish = string.find(json.delta.text, "```", ticks_index)
-			if finish then
-				if first_tick then
-					write_string_at_cursor(string.sub(json.delta.text, finish + 1))
-					ticks_index = finish
-					first_tick = false
-					finish = nil
-					printing = true
-				else
-					write_string_at_cursor(string.sub(json.delta.text, 0, finish - 4))
-					ticks_index = 0
-					printing = false
-					first_tick = true
-					finish = nil
-				end
-			else
-				if printing then
-					write_string_at_cursor(json.delta.text)
-				end
-			end
-		end
-	end
-end
-
-local function parse_and_call(line)
-	local event = string.match(line, "^event:%s*(.+)$")
-	if event then
-		curr_event_state = event
-		return
-	end
-	local data_match = string.match(line, "^data: (.+)$")
-	if data_match then
-		handle_anthropic_spec_data(data_match, curr_event_state)
-	end
-end
-
-local function parse_response_by_model(result)
-	local model = os.getenv("ROBBY_MODEL")
-	if model then
-		if string.match(model, "claude") then
-			return result.content[1].text
-		elseif string.match(model, "gpt") then
-			return result.choices[1].message.content
-		elseif string.match(model, "ollama") then
-			return result.message.content
-		else
-			return nil
-		end
-	else
-		return nil
-	end
-end
-
 local function reset_cursor_to_leftmost_column()
 	-- Get the current window and cursor position
 	local current_window = vim.api.nvim_get_current_win()
@@ -347,6 +284,24 @@ local function reset_cursor_to_leftmost_column()
 
 	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
 	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
+end
+
+local function countBackticks(str)
+	local count = 0
+	for i = 1, #str do
+		if str:sub(i, i) == "`" then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local function get_last_split(str)
+	-- Split the string by backticks
+	local parts = vim.split(str, "`", { plain = true })
+
+	-- Return the last part from the split
+	return parts[#parts]
 end
 
 local function query_model(prompt, system_message, line1, line2, max_tokens)
@@ -357,7 +312,8 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 	vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, {})
 	reset_cursor_to_leftmost_column()
 
-	local output = ""
+	local tickCount = 0
+	local firstBackTick = false
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
 			for _, line in ipairs(data) do
@@ -366,7 +322,20 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 					local success, result_or_error = pcall(cjson.decode, jsonString)
 					if success then
 						local partialMessage = result_or_error.choices[1].delta.content
-						write_string_at_cursor(partialMessage)
+						tickCount = tickCount + countBackticks(partialMessage)
+						if tickCount >= 3 then
+							tickCount = 0
+							if firstBackTick then
+								break
+							else
+								write_string_at_cursor(get_last_split(partialMessage))
+								firstBackTick = true
+							end
+						else
+							if firstBackTick then
+								write_string_at_cursor(partialMessage)
+							end
+						end
 					end
 				end
 			end
