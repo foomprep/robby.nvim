@@ -1,6 +1,8 @@
 local uv = vim.uv
 local os = require("os")
 local JSON = require("JSON")
+local http = require("socket.http")
+local ltn12 = require("ltn12")
 
 ------------ Global variables ---------------------------
 
@@ -207,6 +209,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			messages = {
 				{ role = "user", content = prompt },
 			},
+			stream = true,
 		})
 		return string.format(
 			"curl -s -X POST 'https://api.anthropic.com/v1/messages' "
@@ -226,9 +229,10 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 				{ role = "system", content = system_message },
 				{ role = "user", content = prompt },
 			},
+			stream = stream,
 		})
 		return string.format(
-			"curl -s -X POST 'https://api.openai.com/v1/chat/completions' "
+			"curl --no-buffer -s -X POST 'https://api.openai.com/v1/chat/completions' "
 				.. "-H 'Content-Type: application/json' "
 				.. "-H 'Authorization: Bearer %s' "
 				.. "--data '%s'",
@@ -247,7 +251,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			stream = false,
 		})
 		return string.format(
-			"curl -s -X POST 'http://localhost:11434/api/chat' "
+			"curl --no-buffer -s -X POST 'http://localhost:11434/api/chat' "
 				.. "-H 'Content-Type: application/json' "
 				.. "--data '%s'",
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
@@ -337,51 +341,6 @@ local function parse_response_by_model(result)
 	end
 end
 
--- TODO currently not working
---local function streamAnthropicResponse(prompt)
---	local curlCommand = string.format(
---		[[
---        curl -N -s https://api.anthropic.com/v1/messages
---        -H 'Content-Type: application/json'
---        -H 'X-API-Key: %s'
---        -H 'anthropic-version: 2023-06-01'
---        --data '{
---            "model": "%s",
---			"system": "%s",
---            "messages": [{
---                "role": "user",
---                "content": "%s"
---            }],
---            "max_tokens": 4096,
---            "stream": true
---        }'
---    ]],
---		os.getenv("ANTHROPIC_API_KEY"),      t
---		os.getenv("ROBBY_MODEL"),
---		coding_system_message,
---		prompt:gsub('"', '\\"') -- Escape double quotes in the prompt
---	)
---	local preparedCurlCommand = curlCommand:gsub("[\n\r]+", " "):gsub("%s+", " ")
---
---	start_spinner()
---	local job_id = vim.fn.jobstart({ "sh", "-c", preparedCurlCommand }, {
---		on_stdout = function(_, data)
---			for _, line in ipairs(data) do
---				parse_and_call(line)
---			end
---		end,
---		on_stderr = function(_, data)
---			stop_spinner()
---		end,
---		on_exit = function(_, exit_code)
---			print("Exited with code " .. exit_code)
---			stop_spinner()
---			s = ""
---			printing = false
---		end,
---	})                                   l
---end
-
 local function query_model(prompt, system_message, line1, line2, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 
@@ -435,6 +394,7 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 		print("Invalid arguments for jobstart")
 	end
 end
+
 ------------------------------------------------------------------------
 
 ----------------------- User Commands -----------------------------------
