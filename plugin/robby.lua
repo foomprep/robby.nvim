@@ -229,7 +229,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 				{ role = "system", content = system_message },
 				{ role = "user", content = prompt },
 			},
-			stream = stream,
+			stream = true,
 		})
 		return string.format(
 			"curl --no-buffer -s -X POST 'https://api.openai.com/v1/chat/completions' "
@@ -248,7 +248,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 				{ role = "system", content = system_message },
 				{ role = "user", content = prompt },
 			},
-			stream = false,
+			stream = true,
 		})
 		return string.format(
 			"curl --no-buffer -s -X POST 'http://localhost:11434/api/chat' "
