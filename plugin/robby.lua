@@ -1,8 +1,7 @@
 local uv = vim.uv
 local os = require("os")
 local JSON = require("JSON")
-local http = require("socket.http")
-local ltn12 = require("ltn12")
+local cjson = require("cjson")
 
 ------------ Global variables ---------------------------
 
@@ -352,7 +351,12 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 		on_stdout = function(_, data)
 			for _, line in ipairs(data) do
 				if line ~= "" then
-					output = output .. line
+					local jsonString = vim.split(line, "data:")[2]
+					local success, result_or_error = pcall(cjson.decode, jsonString)
+					if success then
+						local partialMessage = result_or_error.choices[1].delta.content
+						write_string_at_cursor(partialMessage)
+					end
 				end
 			end
 		end,
@@ -364,26 +368,6 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 		on_exit = function(_, exit_code)
 			-- Handle job exit here
 			print("Job exited with code:", exit_code)
-			local decoded = JSON:decode(output)
-			local response = parse_response_by_model(decoded)
-			if not response then
-				vim.api.nvim_echo({ { "ROBBY_MODEL env var not set correctly", "ErrorMsg" } }, false, {})
-				return
-			end
-			if #system_message > 0 then
-				local code_change = extract_code_block(response)
-				replace_lines_in_range(line1, line2, code_change)
-			else
-				vim.api.nvim_echo({ { response, "Normal" } }, false, {})
-
-				local file = io.open(".chat_history", "a")
-				if file then
-					file:write(response .. "\n")
-					file:close()
-				else
-					vim.api.nvim_echo({ { " Failed to write to .chat_history", "ErrorMsg" } }, false, {})
-				end
-			end
 			stop_spinner()
 		end,
 	})
