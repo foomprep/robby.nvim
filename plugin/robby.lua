@@ -85,6 +85,34 @@ local function yank_range_of_lines(start_line, end_line)
 	return yanked_text
 end
 
+local function yank_all_lines_in_window()
+	-- Save the current register setting and cursor position
+	local save_reg = vim.fn.getreg('"')
+	local save_cursor = vim.fn.getpos(".")
+
+	-- Move to the first line of the window
+	vim.cmd("normal! gg")
+
+	-- Enter visual mode and select all lines
+	vim.cmd("normal! V")
+
+	-- Move to the last line of the window
+	vim.cmd("normal! G")
+
+	-- Yank the selected lines into register 'a'
+	vim.cmd('normal! "ay')
+
+	-- Store the yanked text into a variable
+	local yanked_text = vim.fn.getreg("a")
+
+	-- Restore the original register setting and cursor position
+	vim.fn.setreg('"', save_reg)
+	vim.fn.setpos(".", save_cursor)
+
+	-- Return the yanked text
+	return yanked_text
+end
+
 local function replace_lines_in_range(start_line, end_line, new_text)
 	-- Save the current register setting and cursor position
 	local save_reg = vim.fn.getreg('"')
@@ -363,6 +391,10 @@ vim.api.nvim_create_user_command("TellRobby", function(opts)
 		local yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
 		local user_message = create_user_message(yanked_lines, opts.args)
 		query_model(user_message, coding_system_message, opts.line1, opts.line2)
+	else -- Yank all lines if not in Visual Mode
+		local all_lines = yank_range_of_lines(1, vim.api.nvim_buf_line_count(0))
+		local user_message = create_user_message(all_lines, opts.args)
+		query_model(user_message, coding_system_message, 1, vim.api.nvim_buf_line_count(0))
 	end
 end, { nargs = "*", range = true })
 
