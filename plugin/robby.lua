@@ -30,13 +30,26 @@ options:
 
 -------------------- Window Setup ------------------------
 
+
 vim.cmd("vsplit new")
 vim.cmd("vertical resize " .. math.floor(vim.o.columns / 3))
-vim.cmd([[
-  autocmd VimEnter * cnoreabbrev q qa
-  autocmd VimEnter * cnoreabbrev wq wqa
-]])
 
+-- Get the list of files in the git repository that are not ignored
+local git_files = vim.fn.systemlist Load the("git ls-files")
+        into the new window
+  (git_files) > 0 then
+           files    vi  vim.cmd("edit " .. git_files[1])
+m.tbl_count      if  for i = 2, #git_files do
+    vim.cmd("vsplit " .. gitvim.cmd_files[i])
+  end   [
+             ([
+end
+  autocmd VimEnter * cnoreabbrev q qa]])
+
+  autocmd VimEnter * cnoreabbrev wq wqa
+
+
+--
 ----------------------------------------------------------
 
 ----------------------- Utils ----------------------------
