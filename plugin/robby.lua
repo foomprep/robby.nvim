@@ -335,14 +335,15 @@ local function query_model(opts, max_tokens)
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
 		yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
+		vim.api.nvim_buf_set_lines(0, opts.line1 - 1, opts.line2, false, {})
 	else -- Yank all lines if not in Visual Mode
 		yanked_lines = yank_range_of_lines(1, vim.api.nvim_buf_line_count(0))
+		vim.api.nvim_buf_set_lines(0, 0, -1, false, {})
 	end
-	local user_message = create_user_message(yanked_lines, opts.args)
-
-	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
-	vim.api.nvim_buf_set_lines(0, opts.line1 - 1, opts.line2, false, {})
 	reset_cursor_to_leftmost_column()
+
+	local user_message = create_user_message(yanked_lines, opts.args)
+	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
 
 	local tickCount = 0
 	local firstBackTick = false
@@ -406,11 +407,11 @@ vim.api.nvim_create_user_command("TellRobby", function(opts)
 	query_model(opts)
 end, { nargs = "*", range = true })
 
-vim.api.nvim_create_user_command("AskRobby", function(opts)
-	local yanked_lines = opts.range == 2 and yank_range_of_lines(opts.line1, opts.line2) or ""
-	local user_message = create_question_message(yanked_lines, opts.args)
-	query_model(user_message, "", opts.line1, opts.line2)
-end, { nargs = "*", range = true })
+--vim.api.nvim_create_user_command("AskRobby", function(opts)
+--	local yanked_lines = opts.range == 2 and yank_range_of_lines(opts.line1, opts.line2) or ""
+--	local user_message = create_question_message(yanked_lines, opts.args)
+--	query_model(user_message, "", opts.line1, opts.line2)
+--end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("Rewind", function(opts)
 	vim.fn.system("git restore .")
