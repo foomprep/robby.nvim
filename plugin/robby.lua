@@ -329,12 +329,19 @@ local function get_last_split(str)
 	return parts[#parts]
 end
 
-local function query_model(prompt, system_message, line1, line2, max_tokens)
+local function query_model(opts, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	start_spinner()
+	local yanked_lines
+	if opts.range == 2 then -- Visual Mode
+		yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
+	else -- Yank all lines if not in Visual Mode
+		yanked_lines = yank_range_of_lines(1, vim.api.nvim_buf_line_count(0))
+	end
+	local user_message = create_user_message(yanked_lines, opts.args)
 
-	local cmd = generate_curl_command(prompt, system_message, max_tokens)
-	vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, {})
+	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
+	vim.api.nvim_buf_set_lines(0, opts.line1 - 1, opts.line2, false, {})
 	reset_cursor_to_leftmost_column()
 
 	local tickCount = 0
@@ -369,9 +376,18 @@ local function query_model(prompt, system_message, line1, line2, max_tokens)
 			print("Stderr:", vim.inspect(data))
 		end,
 		on_exit = function(_, exit_code)
-			-- Handle job exit here
 			print("Job exited with code:", exit_code)
 			stop_spinner()
+
+			-- Save the current file
+			vim.cmd("write")
+
+			-- Add current file to git and commit changes
+			local filename = vim.api.nvim_buf_get_name(0)
+			if filename and filename ~= "" then
+				os.execute("git add " .. filename)
+				os.execute('git commit -m "' .. table.concat(opts.fargs, " ") .. '"')
+			end
 		end,
 	})
 
@@ -387,25 +403,7 @@ end
 ----------------------- User Commands -----------------------------------
 
 vim.api.nvim_create_user_command("TellRobby", function(opts)
-	if opts.range == 2 then -- Visual Mode
-		local yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
-		local user_message = create_user_message(yanked_lines, opts.args)
-		query_model(user_message, coding_system_message, opts.line1, opts.line2)
-	else -- Yank all lines if not in Visual Mode
-		local all_lines = yank_range_of_lines(1, vim.api.nvim_buf_line_count(0))
-		local user_message = create_user_message(all_lines, opts.args)
-		query_model(user_message, coding_system_message, 1, vim.api.nvim_buf_line_count(0))
-	end
-
-	-- Save the current file
-	vim.cmd("write")
-
-	-- Add current file to git and commit changes
-	local filename = vim.api.nvim_buf_get_name(0)
-	if filename and filename ~= "" then
-		os.execute("git add " .. filename)
-		os.execute('git commit -m "' .. table.concat(opts.fargs, " ") .. '"')
-	end
+	query_model(opts)
 end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("AskRobby", function(opts)
