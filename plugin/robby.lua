@@ -404,7 +404,7 @@ end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("Rewind", function(opts)
 	vim.fn.system("git reset --hard HEAD~1")
-	vim.cmd("redraw!")
+	vim.cmd("redraw")
 end, { nargs = 0 })
 
 vim.api.nvim_create_user_command("History", function(opts)
@@ -413,22 +413,4 @@ vim.api.nvim_create_user_command("History", function(opts)
 end, { nargs = 0 })
 
 --------------------------------------------------------------------------
-
------------------------ Key Mappings -------------------------------------
-
-local function generate_code_from_current_line()
-	vim.cmd("stopinsert") -- Exit visual/insert mode
-	local current_line = vim.fn.getline(".")
-	local line_num = vim.api.nvim_win_get_cursor(0)[1]
-	-- Escape any quotes in the current line to avoid breaking the command
-	current_line = current_line:gsub('"', '\\"')
-	local user_message = create_user_message("", current_line)
-	query_model(user_message, coding_system_message, line_num, line_num)
-end
-
--- TODO rewrite this so that it checks the type of the current file and uses comments in that language
---vim.keymap.set({ "i", "v", "n" }, "#;", function()
---	generate_code_from_current_line()
---end, { desc = "Generate code from current line" })
-
---------------------------------------------------------------------------
+---
