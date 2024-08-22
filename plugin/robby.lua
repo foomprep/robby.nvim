@@ -51,6 +51,14 @@ local function open_window_with_git_files()
 	-- Create a new scratch buffer
 	local buf = vim.api.nvim_create_buf(false, true) -- false means not listed, true means scratch buffer
 
+	vim.api.nvim_buf_set_keymap(
+		buf,
+		"n",
+		"<LeftMouse>",
+		"<Cmd>lua OnMouseClick()<CR>",
+		{ noremap = true, silent = true }
+	)
+
 	-- Set the content of the buffer to the list of files
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, files)
 
@@ -58,6 +66,13 @@ local function open_window_with_git_files()
 	vim.cmd("vsplit new")
 	vim.cmd("vertical resize " .. math.floor(vim.o.columns / 3))
 	vim.api.nvim_win_set_buf(0, buf) -- 0 refers to the current window
+end
+
+function OnMouseClick()
+	vim.schedule(function()
+		local line_number = vim.api.nvim_win_get_cursor(0)[1] -- Get the current line number
+		print("Line clicked: " .. line_number)
+	end)
 end
 
 local function toggle_checkmark(line)
@@ -186,39 +201,6 @@ end
 -------------------------------------------------------------
 
 ---------------- Model Stuffs -------------------------------
-local function extract_code_block(text)
-	-- Split the input text into lines
-	local lines = vim.split(text, "\n")
-	-- Initialize variables
-	local start_line = 0
-	local end_line = #lines
-	local found_start = false
-
-	-- Loop through lines to find the start and end of the code block
-	for i, line in ipairs(lines) do
-		if not found_start then
-			-- Check for the start of the code block
-			if line:match("```") then
-				found_start = true
-				start_line = i + 1
-			end
-		else
-			-- Check for the end of the code block
-			if line:match("```") then
-				end_line = i - 1
-				break
-			end
-		end
-	end
-
-	-- Return the extracted code block as a string
-	if found_start and start_line <= end_line then
-		local code_block = table.concat(lines, "\n", start_line, end_line)
-		return code_block
-	else
-		return ""
-	end
-end
 
 -- TODO generalize this so that depending on model used the cmd variable changes
 local function generate_curl_command(prompt, system_message, max_tokens)
