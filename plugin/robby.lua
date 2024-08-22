@@ -396,6 +396,16 @@ vim.api.nvim_create_user_command("TellRobby", function(opts)
 		local user_message = create_user_message(all_lines, opts.args)
 		query_model(user_message, coding_system_message, 1, vim.api.nvim_buf_line_count(0))
 	end
+
+	-- Save the current file
+	vim.cmd("write")
+
+	-- Add current file to git and commit changes
+	local filename = vim.api.nvim_buf_get_name(0)
+	if filename and filename ~= "" then
+		os.execute("git add " .. filename)
+		os.execute('git commit -m "' .. table.concat(opts.fargs, " ") .. '"')
+	end
 end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("AskRobby", function(opts)
