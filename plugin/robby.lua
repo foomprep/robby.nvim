@@ -60,6 +60,20 @@ local function open_window_with_git_files()
 	vim.api.nvim_win_set_buf(0, buf) -- 0 refers to the current window
 end
 
+local function toggle_checkmark(line)
+	-- Get the current line content
+	local content = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[0]
+	if string.sub(content, 1, 4) == "[ ] " then
+		-- Mark as checked
+		content = "[x] " .. string.sub(content, 5)
+	elseif string.sub(content, 1, 4) == "[x] " then
+		-- Mark as unchecked
+		content = "[ ] " .. string.sub(content, 5)
+	end
+	-- Set the updated line content
+	vim.api.nvim_buf_set_lines(0, line, line + 1, false, { content })
+end
+
 vim.cmd([[
   autocmd VimEnter * cnoreabbrev q qa
   autocmd VimEnter * cnoreabbrev wq wqa
