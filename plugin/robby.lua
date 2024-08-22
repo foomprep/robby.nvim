@@ -29,27 +29,44 @@ options:
 ----------------------------------------------------------
 
 -------------------- Window Setup ------------------------
+---
 
+local function open_window_with_git_files()
+	-- Run the Git command and capture the output
+	local result = vim.fn.system("git ls-files --cached --others --exclude-standard")
 
-vim.cmd("vsplit new")
-vim.cmd("vertical resize " .. math.floor(vim.o.columns / 3))
+	-- Split the result into lines
+	local files = vim.split(result, "\n")
 
--- Get the list of files in the git repository that are not ignored
-local git_files = vim.fn.systemlist Load the("git ls-files")
-        into the new window
-  (git_files) > 0 then
-           files    vi  vim.cmd("edit " .. git_files[1])
-m.tbl_count      if  for i = 2, #git_files do
-    vim.cmd("vsplit " .. gitvim.cmd_files[i])
-  end   [
-             ([
+	-- Remove the last empty line caused by the trailing newline character
+	if files[#files] == "" then
+		table.remove(files, #files)
+	end
+
+	-- Add an empty checkmark to each file
+	for i, file in ipairs(files) do
+		files[i] = "[ ] " .. file
+	end
+
+	-- Create a new scratch buffer
+	local buf = vim.api.nvim_create_buf(false, true) -- false means not listed, true means scratch buffer
+
+	-- Set the content of the buffer to the list of files
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, files)
+
+	-- Split the window vertically and set the new buffer to it
+	vim.cmd("vsplit new")
+	vim.cmd("vertical resize " .. math.floor(vim.o.columns / 3))
+	vim.api.nvim_win_set_buf(0, buf) -- 0 refers to the current window
 end
-  autocmd VimEnter * cnoreabbrev q qa]])
 
+vim.cmd([[
+  autocmd VimEnter * cnoreabbrev q qa
   autocmd VimEnter * cnoreabbrev wq wqa
+]])
 
+open_window_with_git_files()
 
---
 ----------------------------------------------------------
 
 ----------------------- Utils ----------------------------
