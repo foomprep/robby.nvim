@@ -30,7 +30,12 @@ options:
 
 -------------------- Window Setup ------------------------
 
-vim.cmd("split")
+vim.cmd("vsplit new")
+vim.cmd("vertical resize " .. math.floor(vim.o.columns / 3))
+vim.cmd([[
+  autocmd VimEnter * cnoreabbrev q qa
+  autocmd VimEnter * cnoreabbrev wq wqa
+]])
 
 ----------------------------------------------------------
 
@@ -62,6 +67,7 @@ end
 ------------------------------------------------------------
 
 --------------------- Buffer Manip -------------------------
+---
 local function yank_range_of_lines(start_line, end_line)
 	-- Save the current register setting and cursor position
 	local save_reg = vim.fn.getreg('"')
@@ -91,63 +97,10 @@ local function yank_range_of_lines(start_line, end_line)
 	return yanked_text
 end
 
-local function yank_all_lines_in_window()
-	-- Save the current register setting and cursor position
-	local save_reg = vim.fn.getreg('"')
-	local save_cursor = vim.fn.getpos(".")
+---------------------------------------------------------------------
 
-	-- Move to the first line of the window
-	vim.cmd("normal! gg")
-
-	-- Enter visual mode and select all lines
-	vim.cmd("normal! V")
-
-	-- Move to the last line of the window
-	vim.cmd("normal! G")
-
-	-- Yank the selected lines into register 'a'
-	vim.cmd('normal! "ay')
-
-	-- Store the yanked text into a variable
-	local yanked_text = vim.fn.getreg("a")
-
-	-- Restore the original register setting and cursor position
-	vim.fn.setreg('"', save_reg)
-	vim.fn.setpos(".", save_cursor)
-
-	-- Return the yanked text
-	return yanked_text
-end
-
-local function replace_lines_in_range(start_line, end_line, new_text)
-	-- Save the current register setting and cursor position
-	local save_reg = vim.fn.getreg('"')
-	local save_cursor = vim.fn.getpos(".")
-
-	-- Move to the start line of the range
-	vim.cmd("normal! " .. start_line .. "G")
-
-	-- Enter visual mode and select the range of lines
-	vim.cmd("normal! V" .. (end_line - start_line) .. "j")
-
-	-- Yank the selected lines into register 'a'
-	vim.cmd('normal! "ay')
-
-	-- Delete the selected lines
-	vim.cmd(start_line .. "," .. end_line .. "d")
-
-	-- Insert the new text
-	local new_lines = vim.split(new_text, "\n")
-	vim.api.nvim_buf_set_lines(0, start_line - 1, start_line - 1, false, new_lines)
-
-	vim.cmd("write")
-	-- Restore the original register setting and cursor position
-	vim.fn.setreg('"', save_reg)
-	vim.fn.setpos(".", save_cursor)
-end
-----
-
--------------- Spinner -----------------------
+-------------- Spinner ----------------------------------------------
+---
 local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
 local spinner_index = 1
 local spinner_timer = nil
