@@ -403,7 +403,7 @@ end, { nargs = "*", range = true })
 --end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("Rewind", function(opts)
-	vim.fn.system("git restore .")
+	vim.fn.system("git reset --hard HEAD~1")
 	vim.cmd("redraw!")
 end, { nargs = 0 })
 
