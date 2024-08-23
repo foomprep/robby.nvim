@@ -400,7 +400,7 @@ end, { nargs = "*", range = true })
 
 vim.api.nvim_create_user_command("Rewind", function(opts)
 	vim.fn.system("git reset --hard HEAD~1")
-	vim.cmd("redraw")
+	vim.cmd("redraw!")
 end, { nargs = 0 })
 
 vim.api.nvim_create_user_command("History", function(opts)
