@@ -14,6 +14,8 @@ updated code
 
 If there is no code section given by the user then simply generate code as specified by the user and return that
 generated code between triple backticks.
+
+ONLY return the updated code.
 ]]
 
 local help_message = [[Robby [options] [prompt]
