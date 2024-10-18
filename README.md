@@ -1,5 +1,5 @@
 # robby.nvim
-robby is a Lazy plugin for GenAI assisted coding in Neovim.
+robby is a Lazy plugin for AI assisted coding in Neovim.
 
 ## Installation
 Add the following plugin file to Neovim config
@@ -31,12 +31,7 @@ generating code from scratch without any context, enter VISUAL mode on empty lin
 ```
 it will generate code based on the prompt and insert it at the line where cursor is located.
 
-There are also some helper user commands
+You can also view the history of prompts
 ```
-:AskRobby write your question here (query the model with any question but do not insert code changes, only output to `stdout`)
 :History (view history of `AskRobby` using `less` in the editor.
 ```
-## Fin
-If you like this plugin please consider sharing it :)
-
-![alt text](https://github.com/joorjeh/robby/blob/main/robby.png?raw=true)
