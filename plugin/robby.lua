@@ -252,7 +252,7 @@ local function query_model(opts, max_tokens)
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
 		yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
-		vim.api.nvim_buf_set_lines(0, opts.line1 - 1, opts.line2, false, {})
+		vim.api.nvim_buf_set_lines(0, opts.line1, opts.line2, false, {})
 	else -- Yank all lines if not in Visual Mode
 		yanked_lines = yank_range_of_lines(1, vim.api.nvim_buf_line_count(0))
 		vim.api.nvim_buf_set_lines(0, 0, -1, false, {})
