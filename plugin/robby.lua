@@ -299,13 +299,6 @@ local function query_model(opts, max_tokens)
 
 			-- Save the current file
 			vim.cmd("write")
-
-			-- Add current file to git and commit changes
-			local filename = vim.api.nvim_buf_get_name(0)
-			if filename and filename ~= "" then
-				os.execute("git add " .. filename)
-				os.execute('git commit -m "' .. table.concat(opts.fargs, " ") .. '"')
-			end
 		end,
 	})
 
@@ -329,11 +322,6 @@ end, { nargs = "*", range = true })
 --	local user_message = create_question_message(yanked_lines, opts.args)
 --	query_model(user_message, "", opts.line1, opts.line2)
 --end, { nargs = "*", range = true })
-
-vim.api.nvim_create_user_command("Rewind", function(opts)
-	vim.fn.system("git reset --hard HEAD~1")
-	vim.cmd("redraw!")
-end, { nargs = 0 })
 
 vim.api.nvim_create_user_command("History", function(opts)
 	vim.cmd("terminal less +G .chat_history")
