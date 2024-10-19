@@ -238,11 +238,13 @@ local function countBackticks(str)
 	return count
 end
 
-local function get_last_split(str)
-	-- Split the string by backticks
-	local parts = vim.split(str, "`", { plain = true })
+local function get_first_split(str)
+	local parts = vim.split(str, "```", { plain = true })
+	return parts[1]
+end
 
-	-- Return the last part from the split
+local function get_last_split(str)
+	local parts = vim.split(str, "```", { plain = true })
 	return parts[#parts]
 end
 
@@ -267,22 +269,26 @@ local function query_model(opts, max_tokens)
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
 			for _, line in ipairs(data) do
-				if line ~= "" then
+				if string.match(line, "data:") then
 					local jsonString = vim.split(line, "data:")[2]
-					local success, result_or_error = pcall(cjson.decode, jsonString)
-					if success then
-						local partialMessage = result_or_error.choices[1].delta.content
-						tickCount = tickCount + countBackticks(partialMessage)
-						if tickCount == 3 then
-							if firstBackTick then
-								break
-							else
-								firstBackTick = true
-								tickCount = 0
-								write_string_at_cursor(get_last_split(partialMessage))
+					print("jsonString: ", jsonString)
+					if string.match(jsonString, "content_block_delta") then
+						local success, result_or_error = pcall(cjson.decode, jsonString)
+						if success then
+							local partialMessage = result_or_error.delta.text
+							tickCount = tickCount + countBackticks(partialMessage)
+							if tickCount == 3 then
+								if firstBackTick then
+									write_string_at_cursor(get_first_split(partialMessage))
+									break
+								else
+									firstBackTick = true
+									tickCount = 0
+									write_string_at_cursor(get_last_split(partialMessage))
+								end
+							elseif firstBackTick then
+								write_string_at_cursor(partialMessage)
 							end
-						elseif firstBackTick then
-							write_string_at_cursor(partialMessage)
 						end
 					end
 				end
