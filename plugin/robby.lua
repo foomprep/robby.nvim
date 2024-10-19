@@ -55,6 +55,40 @@ local function create_question_message(context, question)
 	return "Question context:\n" .. context .. "\n\n" .. question
 end
 
+-- Function to disable cursor movement
+local function disable_cursor_movement()
+	local opts = { noremap = true }
+	-- Disable movement keys
+	vim.keymap.set("n", "h", "<nop>", opts)
+	vim.keymap.set("n", "j", "<nop>", opts)
+	vim.keymap.set("n", "k", "<nop>", opts)
+	vim.keymap.set("n", "l", "<nop>", opts)
+	vim.keymap.set("n", "w", "<nop>", opts)
+	vim.keymap.set("n", "b", "<nop>", opts)
+	vim.keymap.set("n", "e", "<nop>", opts)
+	-- Disable arrow keys
+	vim.keymap.set("n", "<Up>", "<nop>", opts)
+	vim.keymap.set("n", "<Down>", "<nop>", opts)
+	vim.keymap.set("n", "<Left>", "<nop>", opts)
+	vim.keymap.set("n", "<Right>", "<nop>", opts)
+end
+
+-- Function to re-enable cursor movement
+local function enable_cursor_movement()
+	-- Remove the mappings
+	vim.keymap.del("n", "h")
+	vim.keymap.del("n", "j")
+	vim.keymap.del("n", "k")
+	vim.keymap.del("n", "l")
+	vim.keymap.del("n", "w")
+	vim.keymap.del("n", "b")
+	vim.keymap.del("n", "e")
+	vim.keymap.del("n", "<Up>")
+	vim.keymap.del("n", "<Down>")
+	vim.keymap.del("n", "<Left>")
+	vim.keymap.del("n", "<Right>")
+end
+
 ------------------------------------------------------------
 
 --------------------- Buffer Manip -------------------------
@@ -249,6 +283,9 @@ local function get_last_split(str)
 end
 
 local function query_model(opts, max_tokens)
+	-- Disable cursor move by user
+	disable_cursor_movement()
+
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	start_spinner()
 	local yanked_lines
@@ -305,6 +342,7 @@ local function query_model(opts, max_tokens)
 
 			-- Save the current file
 			vim.cmd("write")
+			enable_cursor_movement()
 			vim.nvim_echo("Fin!")
 		end,
 	})
