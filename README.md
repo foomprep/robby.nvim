@@ -9,10 +9,10 @@ return {
     branch = 'master'
 }
 ```
-The plugin currently supports text models from OpenAI.  To specify which, set the environment variable
-`ROBBY_MODEL` with your model of choice.
+The plugin currently supports text-based messages for Anthropic models via the /v1/messages API.  To specify which model, set the environment variable
+`ROBBY_MODEL`
 ```
-export ROBBY_MODEL=gpt-4o
+export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```
 
 > **⚠️ WARNING**
