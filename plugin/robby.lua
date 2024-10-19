@@ -305,6 +305,7 @@ local function query_model(opts, max_tokens)
 
 			-- Save the current file
 			vim.cmd("write")
+			vim.nvim_echo("Fin!")
 		end,
 	})
 
