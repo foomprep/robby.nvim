@@ -352,18 +352,15 @@ local function query_model(opts, max_tokens)
 
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
-			print(table2string(data[1]))
-			-- local handle = io.popen(cmd)
-			-- local resultString = handle:read("*a")
-			-- handle:close()
-			-- local success, resultJson = pcall(cjson.decode, resultString)
-			-- if success then
-			-- 	local message = resultJson.content[1].text
-			-- 	local code = extractCode(message)
-			-- 	write_to_line_number(opts.line1, code)
-			-- else
-			-- 	print("Could not decode result as JSON")
-			-- end
+			local resultString = data[1]
+			local success, resultJson = pcall(cjson.decode, resultString)
+			if success then
+				local message = resultJson.content[1].text
+				local code = extractCode(message)
+				write_to_line_number(opts.line1, code)
+			else
+				print("Could not decode result as JSON")
+			end
 		end,
 		on_stderr = function(_, data)
 			stop_spinner()
