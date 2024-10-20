@@ -254,6 +254,30 @@ function extractCode(inputString)
     return string.sub(inputString, endIndex + 1, closingStartIndex - 1):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
+function write_to_line_number(line_number, new_text)
+    -- Check if line_number is valid
+    if type(line_number) ~= "number" or line_number < 1 then
+        return false, "Invalid line number"
+    end
+
+    local buf = vim.api.nvim_get_current_buf()
+    local line_count = vim.api.nvim_buf_line_count(buf)
+    
+    -- Add empty lines if needed
+    if line_number > line_count then
+        local empty_lines = {}
+        for _ = line_count + 1, line_number do
+            table.insert(empty_lines, "")
+        end
+        vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
+    end
+    
+    -- Write the new text at the specified line (0-based index in the API)
+    vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, {new_text})
+    
+    return true
+end
+
 local function write_string_at_cursor(str)
 	vim.schedule(function()
 		local current_window = vim.api.nvim_get_current_win()
@@ -321,8 +345,18 @@ local function query_model(opts, max_tokens)
 
 	local tickCount = 0
 	local firstBackTick = false
-	local result = os.execute(cmd)
-	print(result)
+	local handle = io.popen(cmd)
+	local resultString = handle:read("*a")
+	handle:close()
+	local success, resultJson = pcall(cjson.decode, resultString)
+	if success then
+		local message = resultJson.content[1].text
+		local code = extractCode(message)
+		write_to_line_number(opts.line1, code)
+	else
+		print("Could not decode result as JSON")
+	end
+	stop_spinner()	
 	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 	-- 	on_stdout = function(_, data)
 	-- 		for _, line in ipairs(data) do
