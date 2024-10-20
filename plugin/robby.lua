@@ -352,7 +352,7 @@ local function query_model(opts, max_tokens)
 
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
-			print(table2string(data))
+			print(table2string(data[1]))
 			-- local handle = io.popen(cmd)
 			-- local resultString = handle:read("*a")
 			-- handle:close()
@@ -375,7 +375,7 @@ local function query_model(opts, max_tokens)
 
 			-- Save the current file
 			vim.cmd("write")
-			vim.nvim_echo("Fin!")
+			--vim.nvim_echo("Fin!")
 		end,
 	})
 	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
