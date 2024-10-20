@@ -349,10 +349,10 @@ local function query_model(opts, max_tokens)
 
 	-- local tickCount = 0
 	-- local firstBackTick = false
-	
-	local job_id = vim.fn.jobstart({"sh", "-c", cmd}, {
+
+	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
-			print(data)
+			print(table2string(data))
 			-- local handle = io.popen(cmd)
 			-- local resultString = handle:read("*a")
 			-- handle:close()
