@@ -236,54 +236,55 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 end
 
 function extractCode(inputString)
-    -- Find the position of the first and last occurrence of triple backticks
-    local startIndex, endIndex = string.find(inputString, "```")
-    
-    if not startIndex then
-        return nil -- No code block found
-    end
+	-- Find the position of the first and last occurrence of triple backticks
+	local startIndex, endIndex = string.find(inputString, "```")
 
-    -- Find the closing backticks after the first opening
-    local closingStartIndex = string.find(inputString, "```", endIndex + 1)
-    
-    if not closingStartIndex then
-        return nil -- No closing backticks found
-    end
+	if not startIndex then
+		return nil -- No code block found
+	end
 
-    -- Extract the code between the backticks
-    return string.sub(inputString, endIndex + 1, closingStartIndex - 1):gsub("^%s+", ""):gsub("%s+$", "")
+	-- Find the closing backticks after the first opening
+	local closingStartIndex = string.find(inputString, "```", endIndex + 1)
+
+	if not closingStartIndex then
+		return nil -- No closing backticks found
+	end
+
+	-- Extract the code between the backticks
+	return string.sub(inputString, endIndex + 1, closingStartIndex - 1):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
 function write_to_line_number(line_number, new_text)
-    -- Check if line_number is valid
-    if type(line_number) ~= "number" or line_number < 1 then
-        return false, "Invalid line number"
-    end
+	-- Check if line_number is valid
+	if type(line_number) ~= "number" or line_number < 1 then
+		return false, "Invalid line number"
+	end
 
-    local buf = vim.api.nvim_get_current_buf()
-    local line_count = vim.api.nvim_buf_line_count(buf)
-    
-    -- Split the text into lines
-    local lines = {}
-    for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
-        table.insert(lines, line)
-    end
-    
-    -- Add empty lines if needed
-    if line_number > line_count then
-        local empty_lines = {}
-        for _ = line_count + 1, line_number do
-            table.insert(empty_lines, "")
-        end
-        vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
-    end
-    
-    -- Write the new lines starting at the specified line (0-based index in the API)
-    vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
-    
-    return true
+	local buf = vim.api.nvim_get_current_buf()
+	local line_count = vim.api.nvim_buf_line_count(buf)
+
+	-- Split the text into lines
+	local lines = {}
+	for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
+		table.insert(lines, line)
+	end
+
+	-- Add empty lines if needed
+	if line_number > line_count then
+		local empty_lines = {}
+		for _ = line_count + 1, line_number do
+			table.insert(empty_lines, "")
+		end
+		vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
+	end
+
+	-- Write the new lines starting at the specified line (0-based index in the API)
+	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
+
+	return true
 end
 
+-- NOT BEING USED, schedule for removal
 local function write_string_at_cursor(str)
 	vim.schedule(function()
 		local current_window = vim.api.nvim_get_current_win()
@@ -331,9 +332,6 @@ local function get_last_split(str)
 end
 
 local function query_model(opts, max_tokens)
-	-- Disable cursor move by user
-	disable_cursor_movement()
-
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	start_spinner()
 	local yanked_lines
@@ -349,20 +347,38 @@ local function query_model(opts, max_tokens)
 	local user_message = create_user_message(yanked_lines, opts.args)
 	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
 
-	local tickCount = 0
-	local firstBackTick = false
-	local handle = io.popen(cmd)
-	local resultString = handle:read("*a")
-	handle:close()
-	local success, resultJson = pcall(cjson.decode, resultString)
-	if success then
-		local message = resultJson.content[1].text
-		local code = extractCode(message)
-		write_to_line_number(opts.line1, code)
-	else
-		print("Could not decode result as JSON")
-	end
-	stop_spinner()	
+	-- local tickCount = 0
+	-- local firstBackTick = false
+	
+	local job_id = vim.fn.jobstart({"sh", "-c", cmd}, {
+		on_stdout = function(_, data)
+			print(data)
+			-- local handle = io.popen(cmd)
+			-- local resultString = handle:read("*a")
+			-- handle:close()
+			-- local success, resultJson = pcall(cjson.decode, resultString)
+			-- if success then
+			-- 	local message = resultJson.content[1].text
+			-- 	local code = extractCode(message)
+			-- 	write_to_line_number(opts.line1, code)
+			-- else
+			-- 	print("Could not decode result as JSON")
+			-- end
+		end,
+			on_stderr = function(_, data)
+			stop_spinner()
+			print("Stderr:", vim.inspect(data))
+		end,
+		on_exit = function(_, exit_code)
+			print("Job exited with code:", exit_code)
+			stop_spinner()
+
+			-- Save the current file
+			vim.cmd("write")
+			vim.nvim_echo("Fin!")
+		end,
+	})
+	})
 	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 	-- 	on_stdout = function(_, data)
 	-- 		for _, line in ipairs(data) do
