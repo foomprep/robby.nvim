@@ -365,7 +365,7 @@ local function query_model(opts, max_tokens)
 			-- 	print("Could not decode result as JSON")
 			-- end
 		end,
-			on_stderr = function(_, data)
+		on_stderr = function(_, data)
 			stop_spinner()
 			print("Stderr:", vim.inspect(data))
 		end,
@@ -377,7 +377,6 @@ local function query_model(opts, max_tokens)
 			vim.cmd("write")
 			vim.nvim_echo("Fin!")
 		end,
-	})
 	})
 	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 	-- 	on_stdout = function(_, data)
