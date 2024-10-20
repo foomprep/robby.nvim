@@ -55,40 +55,6 @@ local function create_question_message(context, question)
 	return "Question context:\n" .. context .. "\n\n" .. question
 end
 
--- Function to disable cursor movement
-local function disable_cursor_movement()
-	local opts = { noremap = true }
-	-- Disable movement keys
-	vim.keymap.set("n", "h", "<nop>", opts)
-	vim.keymap.set("n", "j", "<nop>", opts)
-	vim.keymap.set("n", "k", "<nop>", opts)
-	vim.keymap.set("n", "l", "<nop>", opts)
-	vim.keymap.set("n", "w", "<nop>", opts)
-	vim.keymap.set("n", "b", "<nop>", opts)
-	vim.keymap.set("n", "e", "<nop>", opts)
-	-- Disable arrow keys
-	vim.keymap.set("n", "<Up>", "<nop>", opts)
-	vim.keymap.set("n", "<Down>", "<nop>", opts)
-	vim.keymap.set("n", "<Left>", "<nop>", opts)
-	vim.keymap.set("n", "<Right>", "<nop>", opts)
-end
-
--- Function to re-enable cursor movement
-local function enable_cursor_movement()
-	-- Remove the mappings
-	vim.keymap.del("n", "h")
-	vim.keymap.del("n", "j")
-	vim.keymap.del("n", "k")
-	vim.keymap.del("n", "l")
-	vim.keymap.del("n", "w")
-	vim.keymap.del("n", "b")
-	vim.keymap.del("n", "e")
-	vim.keymap.del("n", "<Up>")
-	vim.keymap.del("n", "<Down>")
-	vim.keymap.del("n", "<Left>")
-	vim.keymap.del("n", "<Right>")
-end
-
 ------------------------------------------------------------
 
 --------------------- Buffer Manip -------------------------
@@ -284,53 +250,6 @@ function write_to_line_number(line_number, new_text)
 	return true
 end
 
--- NOT BEING USED, schedule for removal
-local function write_string_at_cursor(str)
-	vim.schedule(function()
-		local current_window = vim.api.nvim_get_current_win()
-		local cursor_position = vim.api.nvim_win_get_cursor(current_window)
-		local row, col = cursor_position[1], cursor_position[2]
-
-		local lines = vim.split(str, "\n")
-
-		vim.cmd("undojoin")
-		vim.api.nvim_put(lines, "c", true, true)
-
-		local num_lines = #lines
-		local last_line_length = #lines[num_lines]
-		vim.api.nvim_win_set_cursor(current_window, { row + num_lines - 1, col + last_line_length })
-	end)
-end
-
-local function reset_cursor_to_leftmost_column()
-	-- Get the current window and cursor position
-	local current_window = vim.api.nvim_get_current_win()
-	local cursor_position = vim.api.nvim_win_get_cursor(current_window)
-
-	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
-	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
-end
-
-local function countBackticks(str)
-	local count = 0
-	for i = 1, #str do
-		if str:sub(i, i) == "`" then
-			count = count + 1
-		end
-	end
-	return count
-end
-
-local function get_first_split(str)
-	local parts = vim.split(str, "```", { plain = true })
-	return parts[1]
-end
-
-local function get_last_split(str)
-	local parts = vim.split(str, "```", { plain = true })
-	return parts[#parts]
-end
-
 local function query_model(opts, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	start_spinner()
@@ -346,9 +265,6 @@ local function query_model(opts, max_tokens)
 
 	local user_message = create_user_message(yanked_lines, opts.args)
 	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
-
-	-- local tickCount = 0
-	-- local firstBackTick = false
 
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
@@ -375,55 +291,6 @@ local function query_model(opts, max_tokens)
 			vim.api.nvim_echo({ { "Fin!", "Normal" } }, false, {})
 		end,
 	})
-	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
-	-- 	on_stdout = function(_, data)
-	-- 		for _, line in ipairs(data) do
-	-- 			if string.match(line, "data:") then
-	-- 				local jsonString = vim.split(line, "data:")[2]
-	-- 				print("jsonString: ", jsonString)
-	-- 				if string.match(jsonString, "content_block_delta") then
-	-- 					local success, result_or_error = pcall(cjson.decode, jsonString)
-	-- 					if success then
-	-- 						local partialMessage = result_or_error.delta.text
-	-- 						tickCount = tickCount + countBackticks(partialMessage)
-	-- 						if tickCount == 3 then
-	-- 							if firstBackTick then
-	-- 								write_string_at_cursor(get_first_split(partialMessage))
-	-- 								break
-	-- 							else
-	-- 								firstBackTick = true
-	-- 								tickCount = 0
-	-- 								write_string_at_cursor(get_last_split(partialMessage))
-	-- 							end
-	-- 						elseif firstBackTick then
-	-- 							write_string_at_cursor(partialMessage)
-	-- 						end
-	-- 					end
-	-- 				end
-	-- 			end
-	-- 		end
-	-- 	end,
-	-- 	on_stderr = function(_, data)
-	-- 		-- Handle stderr data here
-	-- 		stop_spinner()
-	-- 		print("Stderr:", vim.inspect(data))
-	-- 	end,
-	-- 	on_exit = function(_, exit_code)
-	-- 		print("Job exited with code:", exit_code)
-	-- 		stop_spinner()
-
-	-- 		-- Save the current file
-	-- 		vim.cmd("write")
-	-- 		enable_cursor_movement()
-	-- 		vim.nvim_echo("Fin!")
-	-- 	end,
-	-- })
-
-	-- if job_id == 0 then
-	-- 	print("Failed to start job")
-	-- elseif job_id == -1 then
-	-- 	print("Invalid arguments for jobstart")
-	-- end
 end
 
 ------------------------------------------------------------------------
