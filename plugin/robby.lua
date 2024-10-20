@@ -372,7 +372,7 @@ local function query_model(opts, max_tokens)
 
 			-- Save the current file
 			vim.cmd("write")
-			--vim.nvim_echo("Fin!")
+			vim.api.nvim_echo("Fin!")
 		end,
 	})
 	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
