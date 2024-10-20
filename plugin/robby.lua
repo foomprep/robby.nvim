@@ -184,7 +184,6 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			messages = {
 				{ role = "user", content = prompt },
 			},
-			stream = true,
 		})
 		return string.format(
 			"curl -s -X POST 'https://api.anthropic.com/v1/messages' "
@@ -234,6 +233,25 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 	end
 
 	return nil
+end
+
+function extractCode(inputString)
+    -- Find the position of the first and last occurrence of triple backticks
+    local startIndex, endIndex = string.find(inputString, "```")
+    
+    if not startIndex then
+        return nil -- No code block found
+    end
+
+    -- Find the closing backticks after the first opening
+    local closingStartIndex = string.find(inputString, "```", endIndex + 1)
+    
+    if not closingStartIndex then
+        return nil -- No closing backticks found
+    end
+
+    -- Extract the code between the backticks
+    return string.sub(inputString, endIndex + 1, closingStartIndex - 1):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
 local function write_string_at_cursor(str)
@@ -303,55 +321,57 @@ local function query_model(opts, max_tokens)
 
 	local tickCount = 0
 	local firstBackTick = false
-	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
-		on_stdout = function(_, data)
-			for _, line in ipairs(data) do
-				if string.match(line, "data:") then
-					local jsonString = vim.split(line, "data:")[2]
-					print("jsonString: ", jsonString)
-					if string.match(jsonString, "content_block_delta") then
-						local success, result_or_error = pcall(cjson.decode, jsonString)
-						if success then
-							local partialMessage = result_or_error.delta.text
-							tickCount = tickCount + countBackticks(partialMessage)
-							if tickCount == 3 then
-								if firstBackTick then
-									write_string_at_cursor(get_first_split(partialMessage))
-									break
-								else
-									firstBackTick = true
-									tickCount = 0
-									write_string_at_cursor(get_last_split(partialMessage))
-								end
-							elseif firstBackTick then
-								write_string_at_cursor(partialMessage)
-							end
-						end
-					end
-				end
-			end
-		end,
-		on_stderr = function(_, data)
-			-- Handle stderr data here
-			stop_spinner()
-			print("Stderr:", vim.inspect(data))
-		end,
-		on_exit = function(_, exit_code)
-			print("Job exited with code:", exit_code)
-			stop_spinner()
+	local result = os.execute(cmd)
+	print(result)
+	-- local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
+	-- 	on_stdout = function(_, data)
+	-- 		for _, line in ipairs(data) do
+	-- 			if string.match(line, "data:") then
+	-- 				local jsonString = vim.split(line, "data:")[2]
+	-- 				print("jsonString: ", jsonString)
+	-- 				if string.match(jsonString, "content_block_delta") then
+	-- 					local success, result_or_error = pcall(cjson.decode, jsonString)
+	-- 					if success then
+	-- 						local partialMessage = result_or_error.delta.text
+	-- 						tickCount = tickCount + countBackticks(partialMessage)
+	-- 						if tickCount == 3 then
+	-- 							if firstBackTick then
+	-- 								write_string_at_cursor(get_first_split(partialMessage))
+	-- 								break
+	-- 							else
+	-- 								firstBackTick = true
+	-- 								tickCount = 0
+	-- 								write_string_at_cursor(get_last_split(partialMessage))
+	-- 							end
+	-- 						elseif firstBackTick then
+	-- 							write_string_at_cursor(partialMessage)
+	-- 						end
+	-- 					end
+	-- 				end
+	-- 			end
+	-- 		end
+	-- 	end,
+	-- 	on_stderr = function(_, data)
+	-- 		-- Handle stderr data here
+	-- 		stop_spinner()
+	-- 		print("Stderr:", vim.inspect(data))
+	-- 	end,
+	-- 	on_exit = function(_, exit_code)
+	-- 		print("Job exited with code:", exit_code)
+	-- 		stop_spinner()
 
-			-- Save the current file
-			vim.cmd("write")
-			enable_cursor_movement()
-			vim.nvim_echo("Fin!")
-		end,
-	})
+	-- 		-- Save the current file
+	-- 		vim.cmd("write")
+	-- 		enable_cursor_movement()
+	-- 		vim.nvim_echo("Fin!")
+	-- 	end,
+	-- })
 
-	if job_id == 0 then
-		print("Failed to start job")
-	elseif job_id == -1 then
-		print("Invalid arguments for jobstart")
-	end
+	-- if job_id == 0 then
+	-- 	print("Failed to start job")
+	-- elseif job_id == -1 then
+	-- 	print("Invalid arguments for jobstart")
+	-- end
 end
 
 ------------------------------------------------------------------------
