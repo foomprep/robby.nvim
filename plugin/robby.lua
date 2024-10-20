@@ -202,6 +202,15 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 	return nil
 end
 
+local function reset_cursor_to_leftmost_column()
+	-- Get the current window and cursor position
+	local current_window = vim.api.nvim_get_current_win()
+	local cursor_position = vim.api.nvim_win_get_cursor(current_window)
+
+	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
+	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
+end
+
 function extractCode(inputString)
 	-- Find the position of the first and last occurrence of triple backticks
 	local startIndex, endIndex = string.find(inputString, "```")
