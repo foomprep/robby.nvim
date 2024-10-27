@@ -15,8 +15,10 @@ updated code
 If there is no code section given by the user then simply generate code as specified by the user and return that
 generated code between triple backticks.
 
-Maintain all whitespace to the left of each line, including for the first line.
+Maintain all whitespace to the left of each line of previous code, including for the first line.  Do not replace sections of the previous code being edited with comments, such as "// Previous code as before...".
+
 ONLY return the updated code.
+
 ]]
 
 local help_message = [[Robby [options] [prompt]
