@@ -163,6 +163,22 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			api_key,
 			body:gsub("'", "'\\''") -- Escape single quotes in the body
 		)
+  elseif string.match(model, "gemini") then
+    local concatenated_prompt = system_message .. prompt
+    local api_key = os.getenv("GEMINI_API_KEY")
+    local body = JSON:encode({
+      contents = {
+        { parts = { text = concatenated_prompt } }
+      }
+    })
+    return string.format(
+      "curl"
+        .. "-H 'Content-Type: application/json'"
+        .. "--data '%s'"
+        .. "-X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s'",
+			body:gsub("'", "'\\''") -- Escape single quotes in the body
+			api_key,
+    )
 	elseif string.match(model, "gpt") then -- OpenAI
 		local api_key = os.getenv("OPENAI_API_KEY")
 		local body = JSON:encode({
@@ -280,6 +296,7 @@ local function query_model(opts, max_tokens)
 
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
+      print(data)
 			local resultString = data[1]
 			local success, resultJson = pcall(cjson.decode, resultString)
 			if success then
