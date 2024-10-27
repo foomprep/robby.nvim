@@ -166,7 +166,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
   elseif string.match(model, "gemini") then
     local concatenated_prompt = system_message .. prompt
     local api_key = os.getenv("GEMINI_API_KEY")
-    local body = {
+    local body = JSON:encode({
       contents = {
         {
           parts = {
@@ -176,8 +176,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
           }
         }
       }
-    }
-    local encoded_body = JSON:encode(body)
+    })
     return string.format(
       "curl"
         .. "-H 'Content-Type: application/json'"
