@@ -178,7 +178,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			},
 		})
 		return string.format(
-			"curl "
+			"curl --no-buffer "
 				.. "-H 'Content-Type: application/json' "
 				.. "--data '%s' "
 				.. "-X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s' ",
@@ -302,20 +302,36 @@ local function query_model(opts, max_tokens)
 
 	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
 		on_stdout = function(_, data)
-			print(data)
-			--local resultString = data[1]
-			--local success, resultJson = pcall(cjson.decode, resultString)
-			--if success then
-			--	local message = resultJson.content[1].text
-			--	local code = extractCode(message)
-			--	write_to_line_number(opts.line1, code)
-			--else
-			--	print("Could not decode result as JSON")
-			--end
+			local model = os.getenv("ROBBY_MODEL")
+			-- Gemini models
+			if string.match(model, "gemini") then
+				local jsonString = ""
+				for key, value in pairs(data) do
+					jsonString = jsonString .. value
+				end
+				local success, resultJson = pcall(cjson.decode, jsonString)
+				if success then
+					local message = resultJson.candidates[1].content.parts[1].text
+					print(message)
+					local code = extractCode(message)
+					write_to_line_number(opts.line1, code)
+				end
+
+			-- Anthropic
+			elseif string.match(model, "claude") then
+				local resultString = data[1]
+				local success, resultJson = pcall(cjson.decode, resultString)
+				if success then
+					local message = resultJson.content[1].text
+					local code = extractCode(message)
+					write_to_line_number(opts.line1, code)
+				end
+			end
 		end,
 		on_stderr = function(_, data)
 			stop_spinner()
-			print("Stderr:", vim.inspect(data))
+			-- TODO this should be handled more robustly, prints way to much for non important errors
+			--print("Stderr:", vim.inspect(data))
 		end,
 		on_exit = function(_, exit_code)
 			print("Job exited with code:", exit_code)
