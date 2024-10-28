@@ -235,23 +235,10 @@ local function reset_cursor_to_leftmost_column()
 	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
 end
 
-function extractCode(inputString)
-	-- Find the position of the first and last occurrence of triple backticks
-	local startIndex, endIndex = string.find(inputString, "```")
-
-	if not startIndex then
-		return nil -- No code block found
-	end
-
-	-- Find the closing backticks after the first opening
-	local closingStartIndex = string.find(inputString, "```", endIndex + 1)
-
-	if not closingStartIndex then
-		return nil -- No closing backticks found
-	end
-
-	-- Extract the code between the backticks
-	return string.sub(inputString, endIndex + 1, closingStartIndex - 1):gsub("^%s+", ""):gsub("%s+$", "")
+function extractCode(input)
+	-- Use pattern matching to find code blocks without the language specifier
+	local code = input:match("```%w*%s*(.-)```")
+	return code or "" -- Return the extracted code or an empty string if none found
 end
 
 function write_to_line_number(line_number, new_text)
