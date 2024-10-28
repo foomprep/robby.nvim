@@ -178,10 +178,10 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 			},
 		})
 		return string.format(
-			"curl"
-				.. "-H 'Content-Type: application/json'"
-				.. "--data '%s'"
-				.. "-X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s'",
+			"curl "
+				.. "-H 'Content-Type: application/json' "
+				.. "--data '%s' "
+				.. "-X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s' ",
 			body:gsub("'", "'\\''"), -- Escape single quotes in the body
 			api_key
 		)
