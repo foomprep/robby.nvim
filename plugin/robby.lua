@@ -188,95 +188,6 @@ function call_openai_api(system_message, prompt)
 	return response.choices[1].message.content
 end
 
--- TODO generalize this so that depending on model used the cmd variable changes
-local function generate_curl_command(prompt, system_message, max_tokens)
-	local model = os.getenv("ROBBY_MODEL")
-	if not model then
-		error("ROBBY_MODEL environment variable must be set cowboy!")
-	end
-
-	if string.match(model, "claude") then -- Anthropic
-		local api_key = os.getenv("ANTHROPIC_API_KEY")
-		local body = JSON:encode({
-			model = model,
-			max_tokens = max_tokens,
-			system = system_message,
-			messages = {
-				{ role = "user", content = prompt },
-			},
-		})
-		return string.format(
-			"curl -s -X POST 'https://api.anthropic.com/v1/messages' "
-				.. "-H 'Content-Type: application/json' "
-				.. "-H 'X-API-Key: %s' "
-				.. "-H 'anthropic-version: 2023-06-01' "
-				.. "--data '%s'",
-			api_key,
-			body:gsub("'", "'\\''") -- Escape single quotes in the body
-		)
-	elseif string.match(model, "gemini") then
-		local concatenated_prompt = system_message .. prompt
-		local api_key = os.getenv("GEMINI_API_KEY")
-		local body = JSON:encode({
-			contents = {
-				{
-					parts = {
-						{
-							text = concatenated_prompt,
-						},
-					},
-				},
-			},
-		})
-		return string.format(
-			"curl --no-buffer "
-				.. "-H 'Content-Type: application/json' "
-				.. "--data '%s' "
-				.. "-X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s' ",
-			body:gsub("'", "'\\''"), -- Escape single quotes in the body
-			api_key
-		)
-	elseif string.match(model, "gpt") then -- OpenAI
-		local api_key = os.getenv("OPENAI_API_KEY")
-		local body = JSON:encode({
-			model = model,
-			max_tokens = max_tokens,
-			messages = {
-				{ role = "system", content = system_message },
-				{ role = "user", content = prompt },
-			},
-			stream = false,
-		})
-		return string.format(
-			"curl --no-buffer -s -X POST 'https://api.openai.com/v1/chat/completions' "
-				.. "-H 'Content-Type: application/json' "
-				.. "-H 'Authorization: Bearer %s' "
-				.. "--data '%s'",
-			api_key,
-			body:gsub("'", "'\\''") -- Escape single quotes in the body
-		)
-	elseif string.match(model, "ollama") then -- Ollama
-		local ollama_model = string.sub(model, 8)
-		local body = JSON:encode({
-			model = ollama_model,
-			max_tokens = max_tokens,
-			messages = {
-				{ role = "system", content = system_message },
-				{ role = "user", content = prompt },
-			},
-			stream = true,
-		})
-		return string.format(
-			"curl --no-buffer -s -X POST 'http://localhost:11434/api/chat' "
-				.. "-H 'Content-Type: application/json' "
-				.. "--data '%s'",
-			body:gsub("'", "'\\''") -- Escape single quotes in the body
-		)
-	end
-
-	return nil
-end
-
 local function reset_cursor_to_leftmost_column()
 	-- Get the current window and cursor position
 	local current_window = vim.api.nvim_get_current_win()
@@ -336,7 +247,6 @@ local function query_model(opts, max_tokens)
 
 	local user_message = create_user_message(yanked_lines, opts.args)
 	local response = call_openai_api(coding_system_message, user_message)
-	print(response)
 	local code = extractCode(response)
 	write_to_line_number(opts.line1, code)
 end
