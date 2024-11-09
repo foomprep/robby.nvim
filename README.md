@@ -9,8 +9,7 @@ return {
     branch = 'master'
 }
 ```
-The plugin currently supports text-based messages for Anthropic models via the /v1/messages API.  To specify which model, set the environment variable
-`ROBBY_MODEL`
+The plugin currently supports text-based messages for Anthropic and OpenAI models.  To specify which model, set the environment variable `ROBBY_MODEL`
 ```
 export ROBBY_MODEL=claude-3-5-sonnet-20240620
 ```

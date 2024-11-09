@@ -314,7 +314,17 @@ local function query_model(opts, max_tokens)
 				end
 			-- OpenAI
 			elseif string.match(model, "gpt") then
-				print(table2string(data))
+				local jsonString = ""
+				for key, value in pairs(data) do
+					jsonString = jsonString .. value
+				end
+				local success, resultJson = pcall(cjson.decode, jsonString)
+				print(success)
+				if success then
+					local message = resultJson.choices[1].message.content
+					local code = extractCode(message)
+					write_to_line_number(opts.line1, code)
+				end
 			end
 		end,
 		on_stderr = function(_, data)
