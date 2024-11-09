@@ -194,7 +194,7 @@ local function generate_curl_command(prompt, system_message, max_tokens)
 				{ role = "system", content = system_message },
 				{ role = "user", content = prompt },
 			},
-			stream = true,
+			stream = false,
 		})
 		return string.format(
 			"curl --no-buffer -s -X POST 'https://api.openai.com/v1/chat/completions' "
@@ -303,7 +303,6 @@ local function query_model(opts, max_tokens)
 					local code = extractCode(message)
 					write_to_line_number(opts.line1, code)
 				end
-
 			-- Anthropic
 			elseif string.match(model, "claude") then
 				local resultString = data[1]
@@ -313,6 +312,9 @@ local function query_model(opts, max_tokens)
 					local code = extractCode(message)
 					write_to_line_number(opts.line1, code)
 				end
+			-- OpenAI
+			elseif string.match(model, "gpt") then
+				print(data)
 			end
 		end,
 		on_stderr = function(_, data)
