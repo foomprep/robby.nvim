@@ -319,7 +319,6 @@ local function query_model(opts, max_tokens)
 					jsonString = jsonString .. value
 				end
 				local success, resultJson = pcall(cjson.decode, jsonString)
-				print(success)
 				if success then
 					local message = resultJson.choices[1].message.content
 					local code = extractCode(message)
