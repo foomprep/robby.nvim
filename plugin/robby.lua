@@ -314,7 +314,7 @@ local function query_model(opts, max_tokens)
 				end
 			-- OpenAI
 			elseif string.match(model, "gpt") then
-				print(data)
+				print(table2string(data))
 			end
 		end,
 		on_stderr = function(_, data)
