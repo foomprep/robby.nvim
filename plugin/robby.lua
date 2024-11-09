@@ -136,6 +136,57 @@ end
 -------------------------------------------------------------
 
 ---------------- Model Stuffs -------------------------------
+local http = require("socket.http")
+local ltn12 = require("ltn12")
+local json = require("cjson")
+
+function call_openai_api(system_message, prompt)
+	-- Get API key from environment variable
+	local api_key = os.getenv("OPENAI_API_KEY")
+	if not api_key then
+		error("OPENAI_API_KEY environment variable not set")
+	end
+
+	-- Prepare the request body
+	local request_body = json.encode({
+		model = "gpt-4o",
+		messages = {
+			{
+				role = "system",
+				content = system_message,
+			},
+			{
+				role = "user",
+				content = prompt,
+			},
+		},
+	})
+
+	-- Table to store the response
+	local response_body = {}
+
+	-- Set up the request
+	local res, code, headers = http.request({
+		url = "https://api.openai.com/v1/chat/completions",
+		method = "POST",
+		headers = {
+			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. api_key,
+			["Content-Length"] = #request_body,
+		},
+		source = ltn12.source.string(request_body),
+		sink = ltn12.sink.table(response_body),
+	})
+
+	-- Check for errors
+	if code ~= 200 then
+		error("API request failed with code " .. tostring(code) .. ": " .. table.concat(response_body))
+	end
+
+	-- Parse and return the response
+	local response = json.decode(table.concat(response_body))
+	return response.choices[1].message.content
+end
 
 -- TODO generalize this so that depending on model used the cmd variable changes
 local function generate_curl_command(prompt, system_message, max_tokens)
@@ -273,7 +324,6 @@ end
 
 local function query_model(opts, max_tokens)
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
-	start_spinner()
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
 		yanked_lines = yank_range_of_lines(opts.line1, opts.line2)
@@ -285,62 +335,10 @@ local function query_model(opts, max_tokens)
 	reset_cursor_to_leftmost_column()
 
 	local user_message = create_user_message(yanked_lines, opts.args)
-	local cmd = generate_curl_command(user_message, coding_system_message, max_tokens)
-
-	local job_id = vim.fn.jobstart({ "sh", "-c", cmd }, {
-		on_stdout = function(_, data)
-			local model = os.getenv("ROBBY_MODEL")
-			-- Gemini models
-			if string.match(model, "gemini") then
-				local jsonString = ""
-				for key, value in pairs(data) do
-					jsonString = jsonString .. value
-				end
-				local success, resultJson = pcall(cjson.decode, jsonString)
-				if success then
-					local message = resultJson.candidates[1].content.parts[1].text
-					print(message)
-					local code = extractCode(message)
-					write_to_line_number(opts.line1, code)
-				end
-			-- Anthropic
-			elseif string.match(model, "claude") then
-				local resultString = data[1]
-				local success, resultJson = pcall(cjson.decode, resultString)
-				if success then
-					local message = resultJson.content[1].text
-					local code = extractCode(message)
-					write_to_line_number(opts.line1, code)
-				end
-			-- OpenAI
-			elseif string.match(model, "gpt") then
-				local jsonString = ""
-				for key, value in pairs(data) do
-					jsonString = jsonString .. value
-				end
-				local success, resultJson = pcall(cjson.decode, jsonString)
-				if success then
-					local message = resultJson.choices[1].message.content
-					local code = extractCode(message)
-					write_to_line_number(opts.line1, code)
-				end
-			end
-		end,
-		on_stderr = function(_, data)
-			stop_spinner()
-			-- TODO this should be handled more robustly, prints way to much for non important errors
-			--print("Stderr:", vim.inspect(data))
-		end,
-		on_exit = function(_, exit_code)
-			print("Job exited with code:", exit_code)
-			stop_spinner()
-
-			-- Save the current file
-			vim.cmd("write")
-			vim.api.nvim_echo({ { "Fin!", "Normal" } }, false, {})
-			print("Hello")
-		end,
-	})
+	local response = call_openai_api(coding_system_message, user_message)
+	print(response)
+	local code = extractCode(response)
+	write_to_line_number(opts.line1, code)
 end
 
 ------------------------------------------------------------------------
