@@ -140,6 +140,51 @@ local http = require("socket.http")
 local ltn12 = require("ltn12")
 local json = require("cjson")
 
+function call_claude_api(system_message, prompt)
+	local api_key = os.getenv("ANTHROPIC_API_KEY")
+	if not api_key then
+		error("ANTHROPIC_API_KEY environment variable not set")
+	end
+
+	local request_body = json.encode({
+		model = "claude-3-sonnet-20240229",
+		max_tokens = 4096,
+		system = system_message,
+		messages = {
+			{
+				role = "user",
+				content = prompt,
+			},
+		},
+	})
+
+	-- Table to store the response
+	local response_body = {}
+
+	-- Set up the request
+	local res, code, headers = http.request({
+		url = "https://api.anthropic.com/v1/messages",
+		method = "POST",
+		headers = {
+			["Content-Type"] = "application/json",
+			["x-api-key"] = api_key,
+			["anthropic-version"] = "2023-06-01",
+			["Content-Length"] = #request_body,
+		},
+		source = ltn12.source.string(request_body),
+		sink = ltn12.sink.table(response_body),
+	})
+
+	-- Check for errors
+	if code ~= 200 then
+		error("API request failed with code " .. tostring(code) .. ": " .. table.concat(response_body))
+	end
+
+	-- Parse and return the response
+	local response = json.decode(table.concat(response_body))
+	return response.content[1].text
+end
+
 function call_openai_api(system_message, prompt)
 	-- Get API key from environment variable
 	local api_key = os.getenv("OPENAI_API_KEY")
@@ -246,7 +291,7 @@ local function query_model(opts, max_tokens)
 	reset_cursor_to_leftmost_column()
 
 	local user_message = create_user_message(yanked_lines, opts.args)
-	local response = call_openai_api(coding_system_message, user_message)
+	local response = call_claude_api(coding_system_message, user_message)
 	local code = extractCode(response)
 	write_to_line_number(opts.line1, code)
 end
