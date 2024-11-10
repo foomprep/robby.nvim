@@ -279,6 +279,7 @@ function write_to_line_number(line_number, new_text)
 end
 
 local function query_model(opts, max_tokens)
+	start_spinner()
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
@@ -305,16 +306,13 @@ local function query_model(opts, max_tokens)
 		print("Error: ROBBY_MODEL environment variable not set")
 		os.exit(1)
 	end
-
 	local user_message = create_user_message(yanked_lines, opts.args)
-	local response
+
 	if model:find("gpt") then
-		response = call_claude_api(coding_system_message, user_message)
+		call_claude_api(coding_system_message, user_message)
 	elseif model:find("claude") then
-		response = call_openai_api(coding_system_message, user_message)
+		call_openai_api(coding_system_message, user_message)
 	end
-	local code = extractCode(response)
-	write_to_line_number(opts.line1, code)
 end
 
 ------------------------------------------------------------------------
