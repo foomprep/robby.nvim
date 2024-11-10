@@ -1,7 +1,4 @@
-local uv = vim.uv
 local os = require("os")
---local JSON = require("JSON")
---local cjson = require("cjson")
 
 ------------ Global variables ---------------------------
 
@@ -140,6 +137,8 @@ end
 
 -------------- Spinner ----------------------------------------------
 ---
+local uv = vim.uv
+
 local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
 local spinner_index = 1
 local spinner_timer = nil
