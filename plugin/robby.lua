@@ -290,8 +290,29 @@ local function query_model(opts, max_tokens)
 	end
 	reset_cursor_to_leftmost_column()
 
+	function matchSubstring(str, substr)
+		if str:find(substr) then
+			return true
+		elseif substr:find(str) then
+			return true
+		else
+			return false
+		end
+	end
+
+	local model = os.getenv("ROBBY_MODEL")
+	if model == nil then
+		print("Error: ROBBY_MODEL environment variable not set")
+		os.exit(1)
+	end
+
 	local user_message = create_user_message(yanked_lines, opts.args)
-	local response = call_claude_api(coding_system_message, user_message)
+	local response
+	if model:find("gpt") then
+		response = call_claude_api(coding_system_message, user_message)
+	elseif model:find("claude") then
+		response = call_openai_api(coding_system_message, user_message)
+	end
 	local code = extractCode(response)
 	write_to_line_number(opts.line1, code)
 end
