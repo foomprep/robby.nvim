@@ -1,7 +1,7 @@
 local uv = vim.uv
 local os = require("os")
-local JSON = require("JSON")
-local cjson = require("cjson")
+--local JSON = require("JSON")
+--local cjson = require("cjson")
 
 ------------ Global variables ---------------------------
 
@@ -91,6 +91,51 @@ local function yank_range_of_lines(start_line, end_line)
 	return yanked_text
 end
 
+local function reset_cursor_to_leftmost_column()
+	-- Get the current window and cursor position
+	local current_window = vim.api.nvim_get_current_win()
+	local cursor_position = vim.api.nvim_win_get_cursor(current_window)
+
+	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
+	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
+end
+
+function extractCode(input)
+	-- Use pattern matching to find code blocks without the language specifier
+	local code = input:match("```%w*%s*(.-)```")
+	return code or "" -- Return the extracted code or an empty string if none found
+end
+
+function write_to_line_number(line_number, new_text)
+	-- Check if line_number is valid
+	if type(line_number) ~= "number" or line_number < 1 then
+		return false, "Invalid line number"
+	end
+
+	local buf = vim.api.nvim_get_current_buf()
+	local line_count = vim.api.nvim_buf_line_count(buf)
+
+	-- Split the text into lines
+	local lines = {}
+	for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
+		table.insert(lines, line)
+	end
+
+	-- Add empty lines if needed
+	if line_number > line_count then
+		local empty_lines = {}
+		for _ = line_count + 1, line_number do
+			table.insert(empty_lines, "")
+		end
+		vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
+	end
+
+	-- Write the new lines starting at the specified line (0-based index in the API)
+	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
+
+	return true
+end
+
 ---------------------------------------------------------------------
 
 -------------- Spinner ----------------------------------------------
@@ -136,8 +181,6 @@ end
 -------------------------------------------------------------
 
 ---------------- Model Stuffs -------------------------------
-local http = require("socket.http")
-local ltn12 = require("ltn12")
 local json = require("cjson")
 local Job = require("plenary.job")
 
@@ -194,7 +237,7 @@ function call_claude_api(system_message, prompt, insert_line)
 	}):start()
 end
 
-function call_openai_api(system_message, prompt)
+function call_openai_api(system_message, prompt, insert_line)
 	-- Get API key from environment variable
 	local api_key = os.getenv("OPENAI_API_KEY")
 	if not api_key then
@@ -216,75 +259,37 @@ function call_openai_api(system_message, prompt)
 		},
 	})
 
-	-- Table to store the response
-	local response_body = {}
+	local result = {}
 
-	-- Set up the request
-	local res, code, headers = http.request({
-		url = "https://api.openai.com/v1/chat/completions",
-		method = "POST",
-		headers = {
-			["Content-Type"] = "application/json",
-			["Authorization"] = "Bearer " .. api_key,
-			["Content-Length"] = #request_body,
+	Job:new({
+		command = "curl",
+		args = {
+			"-X",
+			"POST",
+			"-H",
+			"Content-Type: application/json",
+			"-H",
+			"Authorization: Bearer " .. api_key,
+			"-d",
+			request_body,
+			"https://api.openai.com/v1/chat/completions",
 		},
-		source = ltn12.source.string(request_body),
-		sink = ltn12.sink.table(response_body),
-	})
-
-	-- Check for errors
-	if code ~= 200 then
-		error("API request failed with code " .. tostring(code) .. ": " .. table.concat(response_body))
-	end
-
-	-- Parse and return the response
-	local response = json.decode(table.concat(response_body))
-	return response.choices[1].message.content
-end
-
-local function reset_cursor_to_leftmost_column()
-	-- Get the current window and cursor position
-	local current_window = vim.api.nvim_get_current_win()
-	local cursor_position = vim.api.nvim_win_get_cursor(current_window)
-
-	-- Reset the cursor to the leftmost column (column 0 in 0-based indexing)
-	vim.api.nvim_win_set_cursor(current_window, { cursor_position[1], 0 })
-end
-
-function extractCode(input)
-	-- Use pattern matching to find code blocks without the language specifier
-	local code = input:match("```%w*%s*(.-)```")
-	return code or "" -- Return the extracted code or an empty string if none found
-end
-
-function write_to_line_number(line_number, new_text)
-	-- Check if line_number is valid
-	if type(line_number) ~= "number" or line_number < 1 then
-		return false, "Invalid line number"
-	end
-
-	local buf = vim.api.nvim_get_current_buf()
-	local line_count = vim.api.nvim_buf_line_count(buf)
-
-	-- Split the text into lines
-	local lines = {}
-	for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
-		table.insert(lines, line)
-	end
-
-	-- Add empty lines if needed
-	if line_number > line_count then
-		local empty_lines = {}
-		for _ = line_count + 1, line_number do
-			table.insert(empty_lines, "")
-		end
-		vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
-	end
-
-	-- Write the new lines starting at the specified line (0-based index in the API)
-	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
-
-	return true
+		on_exit = function(job, return_val)
+			if return_val ~= 0 then
+				error("API request failed with code " .. tostring(return_val))
+			else
+				local result = table.concat(job:result(), "\n")
+				local response = json.decode(result)
+				local content = response.choices[1].message.content
+				local code = extractCode(content)
+				vim.schedule(function()
+					print("Fin!")
+					stop_spinner()
+					write_to_line_number(insert_line, code)
+				end)
+			end
+		end,
+	}):start()
 end
 
 local function query_model(opts, max_tokens)
@@ -300,16 +305,6 @@ local function query_model(opts, max_tokens)
 	end
 	reset_cursor_to_leftmost_column()
 
-	function matchSubstring(str, substr)
-		if str:find(substr) then
-			return true
-		elseif substr:find(str) then
-			return true
-		else
-			return false
-		end
-	end
-
 	local model = os.getenv("ROBBY_MODEL")
 	if model == nil then
 		print("Error: ROBBY_MODEL environment variable not set")
@@ -318,9 +313,7 @@ local function query_model(opts, max_tokens)
 	local user_message = create_user_message(yanked_lines, opts.args)
 
 	if model:find("gpt") then
-		local response = call_openai_api(coding_system_message, user_message)
-		local code = extractCode(response)
-		write_to_line_number(opts.line1, code)
+		call_openai_api(coding_system_message, user_message, opts.line1)
 	elseif model:find("claude") then
 		call_claude_api(coding_system_message, user_message, opts.line1)
 	end
