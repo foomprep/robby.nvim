@@ -279,7 +279,6 @@ function write_to_line_number(line_number, new_text)
 end
 
 local function query_model(opts, max_tokens)
-	start_spinner()
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
