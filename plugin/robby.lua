@@ -308,11 +308,11 @@ local function query_model(opts, max_tokens)
 	local user_message = create_user_message(yanked_lines, opts.args)
 
 	if model:find("gpt") then
-		local response = call_claude_api(coding_system_message, user_message)
+		local response = call_openai_api(coding_system_message, user_message)
 		local code = extractCode(response)
 		write_to_line_number(opts.line1, code)
 	elseif model:find("claude") then
-		call_openai_api(coding_system_message, user_message)
+		call_claude_api(coding_system_message, user_message)
 	end
 end
 
