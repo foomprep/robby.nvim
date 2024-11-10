@@ -139,8 +139,9 @@ end
 local http = require("socket.http")
 local ltn12 = require("ltn12")
 local json = require("cjson")
+local Job = require("plenary.job")
 
-function call_claude_api(system_message, prompt)
+function call_claude_api(system_message, prompt, insert_line)
 	local api_key = os.getenv("ANTHROPIC_API_KEY")
 	if not api_key then
 		error("ANTHROPIC_API_KEY environment variable not set")
@@ -158,31 +159,39 @@ function call_claude_api(system_message, prompt)
 		},
 	})
 
-	-- Table to store the response
 	local response_body = {}
 
-	-- Set up the request
-	local res, code, headers = http.request({
-		url = "https://api.anthropic.com/v1/messages",
-		method = "POST",
-		headers = {
-			["Content-Type"] = "application/json",
-			["x-api-key"] = api_key,
-			["anthropic-version"] = "2023-06-01",
-			["Content-Length"] = #request_body,
+	-- Use plenary's Job to execute a curl command
+	Job:new({
+		command = "curl",
+		args = {
+			"-X",
+			"POST",
+			"-H",
+			"Content-Type: application/json",
+			"-H",
+			"x-api-key: " .. api_key,
+			"-H",
+			"anthropic-version: 2023-06-01",
+			"-d",
+			request_body,
+			"https://api.anthropic.com/v1/messages",
 		},
-		source = ltn12.source.string(request_body),
-		sink = ltn12.sink.table(response_body),
-	})
-
-	-- Check for errors
-	if code ~= 200 then
-		error("API request failed with code " .. tostring(code) .. ": " .. table.concat(response_body))
-	end
-
-	-- Parse and return the response
-	local response = json.decode(table.concat(response_body))
-	return response.content[1].text
+		on_exit = function(job, return_val)
+			if return_val ~= 0 then
+				error("API request failed with code " .. tostring(return_val))
+			else
+				local result = table.concat(job:result(), "\n")
+				local response = json.decode(result)
+				local code = extractCode(response.content[1].text)
+				vim.schedule(function()
+					print("Fin!")
+					stop_spinner()
+					write_to_line_number(insert_line, code)
+				end)
+			end
+		end,
+	}):start()
 end
 
 function call_openai_api(system_message, prompt)
@@ -279,6 +288,7 @@ function write_to_line_number(line_number, new_text)
 end
 
 local function query_model(opts, max_tokens)
+	start_spinner()
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	local yanked_lines
 	if opts.range == 2 then -- Visual Mode
@@ -312,7 +322,7 @@ local function query_model(opts, max_tokens)
 		local code = extractCode(response)
 		write_to_line_number(opts.line1, code)
 	elseif model:find("claude") then
-		call_claude_api(coding_system_message, user_message)
+		call_claude_api(coding_system_message, user_message, opts.line1)
 	end
 end
 
