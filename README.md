@@ -1,11 +1,11 @@
-# robby.nvim
+# foomer.nvim
 robby is a Lazy plugin for AI assisted coding in Neovim.
 
 ## Installation
 Add the following plugin file to Neovim config
 ```robby.lua
 return {
-    "foomprep/robby",
+    "foomprep/foomer.nvim",
     branch = 'master'
 }
 ```
