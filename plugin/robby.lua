@@ -291,6 +291,67 @@ function call_openai_api(system_message, prompt, insert_line)
 	}):start()
 end
 
+function call_fireworks_api(system_message, prompt, insert_line)
+	-- Get API key from environment variable
+	local api_key = os.getenv("FIREWORKS_API_KEY")
+	if not api_key then
+		error("FIREWORKS_API_KEY environment variable not set")
+	end
+
+	-- Prepare the request body
+	local request_body
+	if os.getenv("ROBBY_MODEL") then
+		request_body = json.encode({
+			model = os.getenv("ROBBY_MODEL"),
+			messages = {
+				{
+					role = "system",
+					content = system_message,
+				},
+				{
+					role = "user",
+					content = prompt,
+				},
+			},
+		})
+	else
+		print("ROBBY_MODEL environment variable is not set. Exiting.")
+		return
+	end
+
+	local result = {}
+
+	Job:new({
+		command = "curl",
+		args = {
+			"-X",
+			"POST",
+			"-H",
+			"Content-Type: application/json",
+			"-H",
+			"Authorization: Bearer " .. api_key,
+			"-d",
+			request_body,
+			"https://api.fireworks.ai/inference/v1/chat/completions",
+		},
+		on_exit = function(job, return_val)
+			if return_val ~= 0 then
+				error("API request failed with code " .. tostring(return_val))
+			else
+				local result = table.concat(job:result(), "\n")
+				local response = json.decode(result)
+				local content = response.choices[1].message.content
+				local code = extractCode(content)
+				vim.schedule(function()
+					print("Fin!")
+					stop_spinner()
+					write_to_line_number(insert_line, code)
+				end)
+			end
+		end,
+	}):start()
+end
+
 local function query_model(opts, max_tokens)
 	start_spinner()
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
@@ -315,6 +376,8 @@ local function query_model(opts, max_tokens)
 		call_openai_api(coding_system_message, user_message, opts.line1)
 	elseif model:find("claude") then
 		call_claude_api(coding_system_message, user_message, opts.line1)
+	elseif model:find("fireworks") then
+		call_fireworks_api(coding_system_message, user_message, opts.line1)
 	end
 end
 
