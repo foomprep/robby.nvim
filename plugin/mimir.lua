@@ -385,7 +385,7 @@ end
 
 ----------------------- User Commands -----------------------------------
 
-vim.api.nvim_create_user_command("TellRobby", function(opts)
+vim.api.nvim_create_user_command("Mim", function(opts)
 	query_model(opts)
 end, { nargs = "*", range = true })
 
@@ -395,7 +395,8 @@ end, { nargs = "*", range = true })
 --	query_model(user_message, "", opts.line1, opts.line2)
 --end, { nargs = "*", range = true })
 
-vim.api.nvim_create_user_command("History", function(opts)
+-- TODO make into subcommand like `Mim history`
+vim.api.nvim_create_user_command("MimHistory", function(opts)
 	vim.cmd("terminal less +G .chat_history")
 	vim.cmd("startinsert")
 end, { nargs = 0 })
