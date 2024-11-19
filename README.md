@@ -5,7 +5,7 @@ mimir is a plugin for AI assisted coding in Neovim.
 Add the following plugin file to Neovim config
 ```robby.lua
 return {
-    "foomprep/foomer.nvim",
+    "foomprep/mimir.nvim",
     branch = 'master'
 }
 ```
