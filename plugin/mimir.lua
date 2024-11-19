@@ -300,9 +300,9 @@ function call_fireworks_api(system_message, prompt, insert_line)
 
 	-- Prepare the request body
 	local request_body
-	if os.getenv("ROBBY_MODEL") then
+	if os.getenv("MIMIR_MODEL") then
 		request_body = json.encode({
-			model = os.getenv("ROBBY_MODEL"),
+			model = os.getenv("MIMIR_MODEL"),
 			messages = {
 				{
 					role = "system",
@@ -315,7 +315,7 @@ function call_fireworks_api(system_message, prompt, insert_line)
 			},
 		})
 	else
-		print("ROBBY_MODEL environment variable is not set. Exiting.")
+		print("MIMIR_MODEL environment variable is not set. Exiting.")
 		return
 	end
 
@@ -365,9 +365,9 @@ local function query_model(opts, max_tokens)
 	end
 	reset_cursor_to_leftmost_column()
 
-	local model = os.getenv("ROBBY_MODEL")
+	local model = os.getenv("MIMIR_MODEL")
 	if model == nil then
-		print("Error: ROBBY_MODEL environment variable not set")
+		print("Error: MIMIR_MODEL environment variable not set")
 		os.exit(1)
 	end
 	local user_message = create_user_message(yanked_lines, opts.args)
