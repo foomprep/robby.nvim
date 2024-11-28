@@ -109,6 +109,9 @@ function write_to_line_number(line_number, new_text)
 		return false, "Invalid line number"
 	end
 
+	-- Trim new_text
+	new_text = new_text:gsub("^%s*(.-)%s*$", "%1")
+
 	local buf = vim.api.nvim_get_current_buf()
 	local line_count = vim.api.nvim_buf_line_count(buf)
 
