@@ -132,20 +132,18 @@ function write_to_line_number(line_number, new_text)
 	end
 	-- Write the new lines starting at the specified line (0-based index in the API)
 	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
-
 	-- Remove only leading empty lines
 	local buffer_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 	local first_non_empty = 0
 	for i, line in ipairs(buffer_lines) do
 		if line:match("%S") then -- Check for any non-whitespace character
-			first_non_empty = i - 1
 			break
 		end
+		first_non_empty = i
 	end
 	if first_non_empty > 0 then
-		vim.api.nvim_buf_set_lines(buf, 0, first_non_empty, false, {})
+		vim.api.nvim_buf_set_lines(buf, 0, first_non_empty - 1, false, {})
 	end
-
 	return true
 end
 
