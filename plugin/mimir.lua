@@ -100,6 +100,7 @@ end
 function extractCode(input)
 	-- Use pattern matching to find code blocks without the language specifier
 	local code = input:match("```%w*%s*(.-)```")
+	code = code:gsub("^%s*(.-)%s*$", "%1")
 	return code or "" -- Return the extracted code or an empty string if none found
 end
 
