@@ -109,28 +109,23 @@ function write_to_line_number(line_number, new_text)
 	if type(line_number) ~= "number" or line_number < 1 then
 		return false, "Invalid line number"
 	end
-
 	local buf = vim.api.nvim_get_current_buf()
 	local line_count = vim.api.nvim_buf_line_count(buf)
-
 	-- Split the text into lines
 	local lines = {}
 	for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
 		table.insert(lines, line)
 	end
-
 	-- Add empty lines if needed
 	if line_number > line_count then
 		local empty_lines = {}
-		for _ = line_count + 1, line_number do
+		for i = line_count + 1, line_number do -- Fixed the asterisks here
 			table.insert(empty_lines, "")
 		end
 		vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, empty_lines)
 	end
-
 	-- Write the new lines starting at the specified line (0-based index in the API)
 	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
-
 	return true
 end
 
