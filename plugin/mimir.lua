@@ -100,8 +100,14 @@ end
 function extractCode(input)
 	-- Use pattern matching to find code blocks without the language specifier
 	local code = input:match("```%w*%s*(.-)```")
-	code = code:gsub("^%s*[\n\r]*(.-)%s*[\n\r]*$", "%1")
-	return code or "" -- Return the extracted code or an empty string if none found
+	if not code then
+		return ""
+	end
+
+	-- Remove leading/trailing whitespace and newlines
+	code = code:gsub("^%s*[\n\r]*", "") -- Remove leading whitespace/newlines
+	code = code:gsub("%s*[\n\r]*$", "") -- Remove trailing whitespace/newlines
+	return code
 end
 
 function write_to_line_number(line_number, new_text)
@@ -109,11 +115,12 @@ function write_to_line_number(line_number, new_text)
 	if type(line_number) ~= "number" or line_number < 1 then
 		return false, "Invalid line number"
 	end
+
 	local buf = vim.api.nvim_get_current_buf()
 	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- Split the text into lines
 	local lines = {}
-	for line in (new_text .. "\n"):gmatch("([^\n]*)\n") do
+	for line in (new_text):gmatch("[^\n]*") do
 		table.insert(lines, line)
 	end
 	-- Add empty lines if needed
