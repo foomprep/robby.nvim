@@ -119,6 +119,12 @@ function write_to_line_number(line_number, new_text)
 	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- Split the text into lines
 	local lines = {}
+	local debug_text = new_text:gmatch("[^\n]+")
+	local file = io.open("debug.log", "w")
+	for line in debug_text do
+		file:write(line, "\n")
+	end
+	file:close()
 	for line in new_text:gmatch("[^\n]+") do
 		table.insert(lines, line)
 	end
