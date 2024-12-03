@@ -110,6 +110,7 @@ function extractCode(input)
 	return code
 end
 
+-- TODO figure out why newlines are being added to result in Normal mode
 function write_to_line_number(line_number, new_text)
 	-- Check if line_number is valid
 	if type(line_number) ~= "number" or line_number < 1 then
@@ -119,7 +120,7 @@ function write_to_line_number(line_number, new_text)
 	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- Split the text into lines
 	local lines = {}
-	for line in new_text:gmatch("[^\n]+") do -- Changed this line
+	for line in new_text:gmatch("[^\n]+") do
 		table.insert(lines, line)
 	end
 	-- Add empty lines if needed
@@ -132,6 +133,20 @@ function write_to_line_number(line_number, new_text)
 	end
 	-- Write the new lines starting at the specified line (0-based index in the API)
 	vim.api.nvim_buf_set_lines(buf, line_number - 1, line_number, false, lines)
+
+	-- Remove any leading empty lines
+	local buffer_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+	local first_non_empty = 0
+	for i, line in ipairs(buffer_lines) do
+		if line ~= "" then
+			first_non_empty = i - 1
+			break
+		end
+	end
+	if first_non_empty > 0 then
+		vim.api.nvim_buf_set_lines(buf, 0, first_non_empty, false, {})
+	end
+
 	return true
 end
 
