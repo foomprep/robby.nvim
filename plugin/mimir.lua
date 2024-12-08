@@ -12,9 +12,12 @@ updated code
 If there is no code section given by the user then simply generate code as specified by the user and return that
 generated code between triple backticks.
 
-Maintain all whitespace to the left of each line of previous code, including for the first line.  Do not replace sections of the previous code being edited with comments, such as "// Previous code as before...".
+Rules:
+ - Maintain all whitespace to the left of each line of previous code, including for the first line
+ - Do not replace sections of the previous code being edited with comments, such as // Previous code as before...
+ - Add newlines where appropiate
 
-ONLY return the updated code.
+ONLY return the updated code.  ALWAYS write the backticks on their own line.
 
 ]]
 
