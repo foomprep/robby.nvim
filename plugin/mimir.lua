@@ -370,6 +370,12 @@ function call_fireworks_api(system_message, prompt, insert_line)
 end
 
 local function query_model(opts, max_tokens)
+	local model = os.getenv("MIMIR_MODEL")
+	if model == nil then
+		print("Error: MIMIR_MODEL environment variable not set.")
+    return
+	end
+
 	start_spinner()
 	max_tokens = max_tokens or 4096 -- Use the provided max_tokens or default to 4096
 	local yanked_lines
@@ -382,11 +388,6 @@ local function query_model(opts, max_tokens)
 	end
 	reset_cursor_to_leftmost_column()
 
-	local model = os.getenv("MIMIR_MODEL")
-	if model == nil then
-		print("Error: MIMIR_MODEL environment variable not set")
-		os.exit(1)
-	end
 	local user_message = create_user_message(yanked_lines, opts.args)
 
 	if model:find("gpt") then
