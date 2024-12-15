@@ -15,7 +15,6 @@ generated code between triple backticks.
 Rules:
  - Maintain all whitespace to the left of each line of previous code, including for the first line
  - Do not replace sections of the previous code being edited with comments, such as // Previous code as before...
- - Add newlines where appropiate
 
 ONLY return the updated code.  ALWAYS write the backticks on their own line.
 
@@ -101,16 +100,16 @@ local function reset_cursor_to_leftmost_column()
 end
 
 function extractCode(input)
-	-- Use pattern matching to find code blocks without the language specifier
-	local code = input:match("```%w*%s*(.-)```")
-	if not code then
-		return ""
-	end
-
-	-- Remove leading/trailing whitespace and newlines
-	code = code:gsub("^%s*[\n\r]*", "") -- Remove leading whitespace/newlines
-	code = code:gsub("%s*[\n\r]*$", "") -- Remove trailing whitespace/newlines
-	return code
+    -- Use pattern matching to find code blocks without the language specifier
+    local code = input:match("```%w*%s*(.-)```")
+    if not code then
+        return ""
+    end
+    
+    -- Convert literal \n sequences to actual newlines
+    code = code:gsub("\\n", "\n")
+    
+    return code
 end
 
 function write_to_line_number(line_number, new_text)
@@ -121,10 +120,10 @@ function write_to_line_number(line_number, new_text)
 	local buf = vim.api.nvim_get_current_buf()
 	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- Split the text into lines
-	local lines = {}
-	for line in new_text:gmatch("[^\n]+") do
-		table.insert(lines, line)
-	end
+  local lines = {}
+  for line in (new_text .. "\n"):gmatch("(.-)\n") do
+      table.insert(lines, line)
+  end
 	-- Add empty lines if needed
 	if line_number > line_count then
 		local empty_lines = {}
@@ -240,9 +239,11 @@ function call_claude_api(system_message, prompt, insert_line)
 			if return_val ~= 0 then
 				error("API request failed with code " .. tostring(return_val))
 			else
-				local result = table.concat(job:result(), "\n")
-				local response = json.decode(result)
-				local code = extractCode(response.content[1].text)
+				local resultJsonString = table.concat(job:result(), "\n") --string
+        resultJsonString = resultJsonString:gsub("\\n\\n", "@@NEWLINE@@")
+				local parsed = json.decode(resultJsonString) -- problem is here, \n\n are not parsed correctly
+        parsed.content[1].text = parsed.content[1].text:gsub("@@NEWLINE@@", "\\n\\n")
+				local code = extractCode(parsed.content[1].text)
 				vim.schedule(function()
 					print("Fin!")
 					stop_spinner()
